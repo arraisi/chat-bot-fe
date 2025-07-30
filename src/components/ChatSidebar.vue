@@ -9,7 +9,7 @@
       </v-list-item>
     </div>
 
-    <v-divider color="rgba(255,255,255,0.2)" />
+    <v-divider color="white" class="custom-divider" />
 
     <!-- Header with New Chat Button -->
     <div class="sidebar-header">
@@ -26,7 +26,7 @@
       </v-list-item>
     </div>
 
-    <v-divider color="rgba(255,255,255,0.2)" />
+    <v-divider color="white" class="custom-divider" />
 
     <!-- Chat History - Scrollable -->
     <div class="sidebar-content">
@@ -79,7 +79,7 @@
 
     <!-- Footer with User Info -->
     <div class="sidebar-footer">
-      <v-divider color="rgba(255,255,255,0.2)" />
+      <v-divider color="white" class="custom-divider" />
       <v-list-item class="pa-4">
         <template #prepend>
           <v-avatar size="36" color="white">
@@ -197,6 +197,12 @@
   .sidebar-footer {
     flex-shrink: 0;
     background-color: rgb(var(--v-theme-primary));
+  }
+
+  /* Custom divider styling */
+  .custom-divider {
+    width: calc(100% - 32px) !important;
+    margin: 0 16px !important;
   }
 
   .chat-session-item {
