@@ -25,17 +25,19 @@ A modern Vue.js chat bot application built with Vuetify, similar to ChatGPT. Fea
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 2. **Start development server**
+
    ```bash
    npm run dev
    ```
@@ -52,11 +54,13 @@ The application starts with a mock API that generates random responses. You can 
 ### Connecting to a Real ChatBot API
 
 1. **Create environment file**
+
    ```bash
    cp .env.example .env
    ```
 
 2. **Add your API configuration**
+
    ```env
    VITE_CHATBOT_API_ENDPOINT=https://api.openai.com/v1/chat/completions
    VITE_CHATBOT_API_KEY=your-api-key-here
@@ -64,15 +68,15 @@ The application starts with a mock API that generates random responses. You can 
    ```
 
 3. **Update the chat composable**
-   
+
    Replace the mock API call in `src/composables/useChat.ts`:
-   
+
    ```typescript
    // Replace this line:
-   await sendMessageMock(message)
-   
+   await sendMessageMock(message);
+
    // With this:
-   await sendMessage(message, import.meta.env.VITE_CHATBOT_API_ENDPOINT)
+   await sendMessage(message, import.meta.env.VITE_CHATBOT_API_ENDPOINT);
    ```
 
 ## ❗️ Important Links
@@ -87,12 +91,12 @@ The application starts with a mock API that generates random responses. You can 
 
 Set up your project using your preferred package manager. Use the corresponding command to install the dependencies:
 
-| Package Manager                                                | Command        |
-|---------------------------------------------------------------|----------------|
-| [yarn](https://yarnpkg.com/getting-started)                   | `yarn install` |
-| [npm](https://docs.npmjs.com/cli/v7/commands/npm-install)     | `npm install`  |
-| [pnpm](https://pnpm.io/installation)                          | `pnpm install` |
-| [bun](https://bun.sh/#getting-started)                        | `bun install`  |
+| Package Manager                                           | Command        |
+| --------------------------------------------------------- | -------------- |
+| [yarn](https://yarnpkg.com/getting-started)               | `yarn install` |
+| [npm](https://docs.npmjs.com/cli/v7/commands/npm-install) | `npm install`  |
+| [pnpm](https://pnpm.io/installation)                      | `pnpm install` |
+| [bun](https://bun.sh/#getting-started)                    | `bun install`  |
 
 After completing the installation, your environment is ready for Vuetify development.
 
@@ -149,6 +153,7 @@ This project is built with [Vuetify](https://vuetifyjs.com/en/), a UI Library wi
 - [Making a one-time donation with Paypal](https://paypal.me/vuetify)
 
 ## 📑 License
+
 [MIT](http://opensource.org/licenses/MIT)
 
 Copyright (c) 2016-present Vuetify, LLC

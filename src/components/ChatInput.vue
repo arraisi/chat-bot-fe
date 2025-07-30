@@ -37,45 +37,45 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+  import { computed, ref } from 'vue';
 
   interface Props {
-    isLoading?: boolean
-    error?: string | null
+    isLoading?: boolean;
+    error?: string | null;
   }
 
   interface Emits {
-    'send-message': [message: string]
+    'send-message': [message: string];
   }
 
   const props = withDefaults(defineProps<Props>(), {
     isLoading: false,
     error: null,
-  })
+  });
 
-  const emit = defineEmits<Emits>()
+  const emit = defineEmits<Emits>();
 
-  const inputMessage = ref('')
+  const inputMessage = ref('');
 
   const canSend = computed(() => {
-    return inputMessage.value.trim().length > 0 && !props.isLoading
-  })
+    return inputMessage.value.trim().length > 0 && !props.isLoading;
+  });
 
   const handleSubmit = () => {
-    if (!canSend.value) return
+    if (!canSend.value) return;
 
-    const message = inputMessage.value.trim()
+    const message = inputMessage.value.trim();
     if (message) {
-      emit('send-message', message)
-      inputMessage.value = ''
+      emit('send-message', message);
+      inputMessage.value = '';
     }
-  }
+  };
 
   const addNewLine = () => {
-    inputMessage.value += '\n'
-  }
+    inputMessage.value += '\n';
+  };
 </script>
 
 <style scoped>
-/* Input styles are handled by the parent floating container */
+  /* Input styles are handled by the parent floating container */
 </style>

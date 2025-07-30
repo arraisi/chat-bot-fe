@@ -16,23 +16,26 @@ A modern, responsive chat interface built with Vue 3, Vuetify, and TypeScript. T
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <your-repo-url>
 cd chat-bot-fe
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -62,6 +65,7 @@ To integrate with OpenAI's ChatGPT API:
 1. Get your OpenAI API key from [OpenAI Platform](https://platform.openai.com/)
 
 2. Create a `.env` file:
+
 ```env
 VITE_OPENAI_API_KEY=your_openai_api_key_here
 ```
@@ -72,40 +76,38 @@ VITE_OPENAI_API_KEY=your_openai_api_key_here
 
 ```typescript
 // In src/composables/useChat.ts
-import { sendToChatGPT } from '@/services/chatApi'
+import { sendToChatGPT } from '@/services/chatApi';
 
 // Replace the mock implementation with:
 const sendMessage = async (userMessage: string) => {
   if (!currentSession.value) {
-    createNewSession()
+    createNewSession();
   }
 
   try {
-    isLoading.value = true
-    error.value = null
+    isLoading.value = true;
+    error.value = null;
 
-    addMessage(userMessage, 'user')
-    const assistantMessage = addMessage('', 'assistant', true)
-    
-    const conversationHistory = currentSession.value!.messages
-      .slice(-10)
-      .filter(m => !m.isTyping)
+    addMessage(userMessage, 'user');
+    const assistantMessage = addMessage('', 'assistant', true);
+
+    const conversationHistory = currentSession.value!.messages.slice(-10).filter(m => !m.isTyping);
 
     const response = await sendToChatGPT({
       message: userMessage,
-      conversation_history: conversationHistory
-    })
-    
+      conversation_history: conversationHistory,
+    });
+
     if (assistantMessage) {
-      updateMessage(assistantMessage.id, response.content, false)
+      updateMessage(assistantMessage.id, response.content, false);
     }
   } catch (error_) {
-    error.value = error_ instanceof Error ? error_.message : 'An error occurred'
+    error.value = error_ instanceof Error ? error_.message : 'An error occurred';
     // Handle error...
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 ```
 
 ## 📁 Project Structure
@@ -134,7 +136,7 @@ src/
 The application uses Vuetify for UI components. You can customize the theme in `src/plugins/vuetify.ts`:
 
 ```typescript
-import { createVuetify } from 'vuetify'
+import { createVuetify } from 'vuetify';
 
 export default createVuetify({
   theme: {
@@ -145,11 +147,11 @@ export default createVuetify({
           primary: '#1976D2',
           secondary: '#424242',
           // Add your custom colors
-        }
-      }
-    }
-  }
-})
+        },
+      },
+    },
+  },
+});
 ```
 
 ### Message Components
@@ -176,8 +178,8 @@ Extend functionality by modifying `src/composables/useChat.ts`:
 
 ```typescript
 interface ChatBotRequest {
-  message: string
-  conversation_history?: Message[]
+  message: string;
+  conversation_history?: Message[];
 }
 ```
 
@@ -185,12 +187,12 @@ interface ChatBotRequest {
 
 ```typescript
 interface ChatBotResponse {
-  content: string
+  content: string;
   usage?: {
-    prompt_tokens: number
-    completion_tokens: number
-    total_tokens: number
-  }
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
 }
 ```
 
@@ -208,7 +210,7 @@ Content-Type: application/json
       "content": "Previous message"
     },
     {
-      "role": "assistant", 
+      "role": "assistant",
       "content": "Previous response"
     }
   ]

@@ -1,6 +1,6 @@
-import type { ChatBotRequest, ChatBotResponse } from '../types/chat'
+import type { ChatBotRequest, ChatBotResponse } from '../types/chat';
 
-import axios from 'axios'
+import axios from 'axios';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -9,7 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-})
+});
 
 // Add request interceptor to include auth token if needed
 api.interceptors.request.use(config => {
@@ -18,17 +18,17 @@ api.interceptors.request.use(config => {
   // if (token) {
   //   config.headers.Authorization = `Bearer ${token}`
   // }
-  return config
-})
+  return config;
+});
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
   response => response,
   error => {
-    console.error('API Error:', error)
-    return Promise.reject(error)
-  },
-)
+    console.error('API Error:', error);
+    return Promise.reject(error);
+  }
+);
 
 /**
  * Send a message to the ChatBot API
@@ -41,15 +41,15 @@ api.interceptors.response.use(
  */
 export const sendChatMessage = async (request: ChatBotRequest): Promise<ChatBotResponse> => {
   try {
-    const response = await api.post<ChatBotResponse>('/chat', request)
-    return response.data
+    const response = await api.post<ChatBotResponse>('/chat', request);
+    return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(`Chat API Error: ${error.response?.status} ${error.response?.statusText}`)
+      throw new Error(`Chat API Error: ${error.response?.status} ${error.response?.statusText}`);
     }
-    throw error
+    throw error;
   }
-}
+};
 
 /**
  * Example ChatGPT API integration
@@ -77,22 +77,22 @@ export const sendToChatGPT = async (request: ChatBotRequest): Promise<ChatBotRes
       },
       {
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
-      },
-    )
+      }
+    );
 
     return {
       content: openAIResponse.data.choices[0].message.content,
       usage: openAIResponse.data.usage,
-    }
+    };
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(`OpenAI API Error: ${error.response?.status} ${error.response?.statusText}`)
+      throw new Error(`OpenAI API Error: ${error.response?.status} ${error.response?.statusText}`);
     }
-    throw error
+    throw error;
   }
-}
+};
 
-export default api
+export default api;
