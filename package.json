@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "format:staged": "prettier --write --cache --ignore-unknown",
-    "build": "vue-cli-service build",
+    "build": "vue-tsc --build && vite build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
