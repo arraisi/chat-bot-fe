@@ -43,7 +43,7 @@
           <!-- Profile/Account Settings -->
           <v-list-item @click="handlePreferences">
             <template #prepend>
-              <v-icon color="primary">mdi-account-cog</v-icon>
+              <v-icon color="black" style="opacity: 1">mdi-account-cog</v-icon>
             </template>
             <v-list-item-title class="text-black">Profile Settings</v-list-item-title>
             <v-list-item-subtitle class="text-black" style="opacity: 0.7">User settings</v-list-item-subtitle>
@@ -54,7 +54,7 @@
             <template #activator="{ props: groupProps }">
               <v-list-item v-bind="groupProps">
                 <template #prepend>
-                  <v-icon color="primary">mdi-palette</v-icon>
+                  <v-icon color="black" style="opacity: 1">mdi-palette</v-icon>
                 </template>
                 <v-list-item-title class="text-black">Theme Settings</v-list-item-title>
                 <v-list-item-subtitle class="text-black" style="opacity: 0.7">Light/Dark mode</v-list-item-subtitle>
@@ -62,13 +62,13 @@
             </template>
             <v-list-item @click="handleToggleTheme('light')">
               <template #prepend>
-                <v-icon color="primary">mdi-white-balance-sunny</v-icon>
+                <v-icon color="warning" style="opacity: 1">mdi-white-balance-sunny</v-icon>
               </template>
               <v-list-item-title class="text-black">Light</v-list-item-title>
             </v-list-item>
             <v-list-item @click="handleToggleTheme('dark')">
               <template #prepend>
-                <v-icon color="primary">mdi-weather-night</v-icon>
+                <v-icon color="black" style="opacity: 1">mdi-weather-night</v-icon>
               </template>
               <v-list-item-title class="text-black">Dark</v-list-item-title>
             </v-list-item>
@@ -77,7 +77,7 @@
           <!-- Logout -->
           <v-list-item @click="handleLogout">
             <template #prepend>
-              <v-icon color="error">mdi-logout</v-icon>
+              <v-icon color="#f44336" style="opacity: 1">mdi-logout</v-icon>
             </template>
             <v-list-item-title class="text-black">Logout</v-list-item-title>
           </v-list-item>
@@ -419,5 +419,35 @@
 
   :deep(.account-menu .v-list-group__items .v-list-item:hover) {
     background-color: rgba(211, 152, 231, 0.15) !important;
+  }
+
+  /* Make icons appear more vibrant and active */
+  :deep(.account-menu .v-icon) {
+    opacity: 1 !important;
+    filter: saturate(1.2) brightness(1.1) !important;
+  }
+
+  /* Primary colored icons (Profile Settings, Theme Settings, Theme options) */
+  :deep(.account-menu .v-icon[style*='color: rgb(32, 40, 135)']) {
+    color: #202887 !important;
+    opacity: 1 !important;
+  }
+
+  /* Error colored icons (Logout) */
+  :deep(.account-menu .v-icon[style*='color: rgb(244, 67, 54)']) {
+    color: #f44336 !important;
+    opacity: 1 !important;
+  }
+
+  /* Alternative approach - target icons by their specific colors */
+  :deep(.account-menu .v-list-item .v-icon) {
+    opacity: 1 !important;
+    filter: none !important;
+  }
+
+  /* Hover state for icons */
+  :deep(.account-menu .v-list-item:hover .v-icon) {
+    opacity: 1 !important;
+    filter: brightness(1.1) saturate(1.3) !important;
   }
 </style>

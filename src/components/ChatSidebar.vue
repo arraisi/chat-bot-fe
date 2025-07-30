@@ -233,22 +233,63 @@
     margin: 0 8px 4px 8px;
   }
 
+  /* Chat Session Item Hover State */
   .chat-session-item:hover {
-    background-color: rgba(211, 152, 231, 0.1) !important;
+    background-color: rgba(211, 152, 231, 1) !important;
   }
 
+  /* Chat Session Item Active State */
   .chat-session-item.v-list-item--active {
-    background-color: rgba(211, 152, 231, 0.2) !important;
+    background-color: rgba(211, 152, 231, 1) !important;
     color: white !important;
   }
 
+  /* Ensure text stays white on hover and active */
+  .chat-session-item:hover .v-list-item-title,
   .chat-session-item.v-list-item--active .v-list-item-title {
     color: white !important;
     font-weight: 600;
   }
 
+  .chat-session-item:hover .v-list-item-subtitle,
+  .chat-session-item.v-list-item--active .v-list-item-subtitle {
+    color: white !important;
+    opacity: 0.9;
+  }
+
+  .chat-session-item:hover .v-icon,
   .chat-session-item.v-list-item--active .v-icon {
     color: white !important;
+  }
+
+  /* New Chat Button Hover */
+  .sidebar-header .v-btn:hover {
+    background-color: rgba(211, 152, 231, 1) !important;
+  }
+
+  /* Upload File and Search Button Hover */
+  .sidebar-header .v-btn.v-btn--block:hover {
+    background-color: rgba(211, 152, 231, 1) !important;
+  }
+
+  /* Footer user info hover */
+  /* .sidebar-footer .v-list-item:hover {
+    background-color: rgba(211, 152, 231, 1) !important;
+  }
+
+  .sidebar-footer .v-btn:hover {
+    background-color: rgba(211, 152, 231, 1) !important;
+  } */
+
+  /* Delete button hover - keep visible on hover */
+  .chat-session-item:hover .v-btn,
+  .chat-session-item.v-list-item--active .v-btn {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .chat-session-item .v-btn:hover {
+    background-color: rgba(244, 67, 54, 0.8) !important;
   }
 
   /* Light theme specific adjustments */
@@ -278,17 +319,18 @@
     opacity: 1;
   }
 
-  /* New Chat Button Hover */
-  .sidebar-header .v-btn:hover {
-    background-color: rgba(211, 152, 231, 0.1) !important;
+  /* Override Vuetify's default hover states */
+  :deep(.chat-session-item.v-list-item:hover) {
+    background-color: rgba(211, 152, 231, 1) !important;
   }
 
-  /* Footer user info hover */
-  .sidebar-footer .v-list-item:hover {
-    background-color: rgba(211, 152, 231, 0.1) !important;
+  :deep(.chat-session-item.v-list-item.v-list-item--active) {
+    background-color: rgba(211, 152, 231, 1) !important;
   }
 
-  .sidebar-footer .v-btn:hover {
-    background-color: rgba(211, 152, 231, 0.2) !important;
+  /* Ensure proper text contrast on the secondary color background */
+  :deep(.chat-session-item:hover *),
+  :deep(.chat-session-item.v-list-item--active *) {
+    color: white !important;
   }
 </style>
