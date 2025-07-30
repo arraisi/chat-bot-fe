@@ -140,7 +140,6 @@
 
         <!-- Chat Input - Fixed at bottom -->
         <div class="chat-input-container">
-          <v-divider />
           <v-container fluid class="pa-4">
             <ChatInput :error="error" :is-loading="isLoading" @send-message="handleSendMessage" />
           </v-container>
@@ -327,7 +326,7 @@
 
   .chat-input-container {
     flex-shrink: 0;
-    background-color: white;
+    background-color: #f5f5f5;
     border-top: 1px solid rgb(var(--v-theme-outline-variant));
     position: sticky;
     bottom: 0;
