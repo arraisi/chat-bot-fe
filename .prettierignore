@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+.vite/
+.nuxt/
+.output/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Auto-generated files
+*.d.ts
+components.d.ts
+typed-router.d.ts
+
+# Config files that should maintain their format
+.gitignore
+.editorconfig
+.browserslistrc
