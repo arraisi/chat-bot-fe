@@ -19,9 +19,30 @@
           color="white"
           prepend-icon="mdi-plus"
           text="New Chat"
-          variant="flat"
-          class="text-primary font-weight-bold"
+          variant="text"
+          class="text-white font-weight-bold mb-2 justify-start"
           @click="$emit('new-chat')"
+        />
+
+        <!-- Additional Action Buttons -->
+        <v-btn
+          block
+          color="white"
+          prepend-icon="mdi-file-upload-outline"
+          text="Upload File"
+          variant="text"
+          class="text-white font-weight-medium mb-2 justify-start"
+          @click="$emit('upload-file')"
+        />
+
+        <v-btn
+          block
+          color="white"
+          prepend-icon="mdi-magnify"
+          text="Search"
+          variant="text"
+          class="text-white font-weight-medium mb-2 justify-start"
+          @click="$emit('search-chat')"
         />
       </v-list-item>
     </div>
@@ -113,6 +134,8 @@
     'new-chat': [];
     'switch-session': [sessionId: string];
     'delete-session': [sessionId: string];
+    'upload-file': [];
+    'search-chat': [];
   }
 
   const props = defineProps<Props>();
