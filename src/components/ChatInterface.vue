@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <!-- App Bar -->
-    <v-app-bar elevation="1" color="white" class="flexible-app-bar" :style="appBarStyle">
+    <v-app-bar elevation="0" color="white" class="flexible-app-bar" :style="appBarStyle">
       <!-- Sidebar Toggle Button -->
       <v-app-bar-nav-icon color="black" @click="sidebarOpen = !sidebarOpen" />
 
@@ -35,7 +35,7 @@
       <v-menu location="bottom end" offset="8" v-model="accountMenuOpen" :close-on-content-click="false">
         <template #activator="{ props }">
           <v-btn icon v-bind="props">
-            <v-icon color="black">mdi-account-circle</v-icon>
+            <v-icon color="#1a1a1a">mdi-cog</v-icon>
             <v-tooltip activator="parent" location="bottom">Account</v-tooltip>
           </v-btn>
         </template>
