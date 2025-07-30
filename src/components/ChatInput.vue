@@ -18,6 +18,9 @@
           @keydown.enter.shift.exact="addNewLine"
         />
 
+        <div style="width: 8px"></div>
+        <!-- Add gap between textarea and button -->
+
         <v-btn
           color="primary"
           icon="mdi-send"

@@ -65,6 +65,19 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    hmr: {
+      overlay: false, // Disable error overlay to prevent reload loops
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vue-vendor': ['vue', 'vue-router'],
+          'vuetify-vendor': ['vuetify'],
+        },
+      },
+    },
   },
   css: {
     preprocessorOptions: {
