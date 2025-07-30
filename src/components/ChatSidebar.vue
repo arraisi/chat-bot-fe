@@ -1,5 +1,16 @@
 <template>
   <div class="chat-sidebar">
+    <!-- Company Logo -->
+    <div class="sidebar-logo">
+      <v-list-item class="pa-4">
+        <div class="text-center w-100">
+          <img src="../assets/peruri_text_logo.png" alt="Company Logo" class="company-logo" />
+        </div>
+      </v-list-item>
+    </div>
+
+    <v-divider color="rgba(255,255,255,0.2)" />
+
     <!-- Header with New Chat Button -->
     <div class="sidebar-header">
       <v-list-item class="pa-4">
@@ -138,6 +149,20 @@
     display: flex;
     flex-direction: column;
     background-color: rgb(var(--v-theme-surface));
+  }
+
+  .sidebar-logo {
+    flex-shrink: 0;
+    background-color: rgb(var(--v-theme-primary));
+    padding: 16px 0;
+  }
+
+  .company-logo {
+    max-width: 180px;
+    max-height: 50px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
   }
 
   .sidebar-header {

@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <!-- App Bar -->
-    <v-app-bar elevation="1" color="white">
+    <v-app-bar elevation="1" color="white" class="flexible-app-bar" :style="appBarStyle">
       <!-- Sidebar Toggle Button -->
       <v-app-bar-nav-icon color="black" @click="sidebarOpen = !sidebarOpen" />
 
@@ -37,8 +37,15 @@
       </v-btn>
     </v-app-bar>
 
-    <!-- Navigation Drawer (Collapsible Sidebar) -->
-    <v-navigation-drawer v-model="sidebarOpen" width="280" elevation="1">
+    <!-- Navigation Drawer (Collapsible Sidebar) - Higher hierarchy -->
+    <v-navigation-drawer
+      v-model="sidebarOpen"
+      width="280"
+      elevation="2"
+      class="navigation-drawer-priority navigation-drawer-fullheight"
+      permanent
+      app
+    >
       <ChatSidebar
         :chat-sessions="chatSessions"
         :current-session-id="currentSessionId"
@@ -112,6 +119,13 @@
 
   const messagesEnd = ref<HTMLElement>();
   const sidebarOpen = ref(true); // Sidebar open state
+
+  // Computed style for flexible app bar
+  const appBarStyle = computed(() => ({
+    marginLeft: sidebarOpen.value ? '280px' : '0px',
+    width: sidebarOpen.value ? 'calc(100% - 280px)' : '100%',
+    transition: 'all 0.3s ease-in-out',
+  }));
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = async () => {
@@ -221,11 +235,44 @@
 
   /* Vuetify app layout adjustments */
   :deep(.v-app-bar) {
-    z-index: 1001;
+    z-index: 999; /* Lower than navigation drawer */
   }
 
   :deep(.v-navigation-drawer) {
-    z-index: 1000;
+    z-index: 1000; /* Higher than app bar */
+  }
+
+  /* Navigation drawer priority class */
+  .navigation-drawer-priority {
+    z-index: 1001 !important;
+  }
+
+  /* Full height navigation drawer */
+  .navigation-drawer-fullheight {
+    height: 100vh !important;
+    top: 0 !important;
+  }
+
+  :deep(.navigation-drawer-fullheight .v-navigation-drawer__content) {
+    height: 100vh !important;
+  }
+
+  /* Flexible app bar that adjusts to navigation drawer */
+  .flexible-app-bar {
+    transition: all 0.3s ease-in-out !important;
+  }
+
+  /* When navigation drawer is open, adjust app bar */
+  :deep(.v-navigation-drawer--active) + .v-main .flexible-app-bar,
+  :deep(.v-navigation-drawer.v-navigation-drawer--active) ~ .flexible-app-bar {
+    margin-left: 280px !important;
+    width: calc(100% - 280px) !important;
+  }
+
+  /* When navigation drawer is closed */
+  :deep(.v-navigation-drawer:not(.v-navigation-drawer--active)) ~ .flexible-app-bar {
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 
   /* Ensure proper spacing in light theme */
