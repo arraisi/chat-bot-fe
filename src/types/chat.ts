@@ -1,3 +1,5 @@
+export type Authority = 'ALL' | 'SDM' | 'HUKUM' | 'ADMIN';
+
 export interface Message {
   id: string;
   content: string;

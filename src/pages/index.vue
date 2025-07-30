@@ -1,9 +1,13 @@
 <template>
   <div class="app-container">
-    <ChatInterface v-if="isAuthenticated && isInitialized" />
+    <ChatInterface v-if="isAuthenticated && isInitialized && userAuthority" />
     <div v-else-if="!isInitialized" class="loading-container">
       <v-progress-circular indeterminate color="primary" size="64" />
       <p class="loading-text">Checking authentication...</p>
+    </div>
+    <div v-else-if="isAuthenticated && !userAuthority" class="loading-container">
+      <v-progress-circular indeterminate color="primary" size="64" />
+      <p class="loading-text">Redirecting to authority selection...</p>
     </div>
     <div v-else class="loading-container">
       <v-progress-circular indeterminate color="primary" size="64" />
@@ -19,15 +23,15 @@
   // Explicit import as fallback for auto-import issues
   import ChatInterface from '../components/ChatInterface.vue';
 
-  const { isAuthenticated, isInitialized, checkAuth } = useAuth();
+  const { isAuthenticated, isInitialized, userAuthority, checkAuth } = useAuth();
   const router = useRouter();
 
   // Watch for initialization completion and handle routing
   watch(
-    [isInitialized, isAuthenticated],
-    ([initialized, authenticated]) => {
+    [isInitialized, isAuthenticated, userAuthority],
+    ([initialized, authenticated, authority]) => {
       if (initialized) {
-        if (!authenticated) {
+        if (!authenticated || !authority) {
           // Use nextTick to avoid immediate redirect issues
           nextTick(() => {
             router.push('/login');

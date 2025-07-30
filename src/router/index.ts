@@ -22,6 +22,33 @@ const router = createRouter({
   routes: routes.length > 0 ? routes : fallbackRoutes,
 });
 
+// Default route guard - redirect to login for authority selection
+router.beforeEach((to, from, next) => {
+  // Check if user is going to login page or already authenticated
+  if (to.path === '/login') {
+    next();
+    return;
+  }
+
+  // Check if user is going to register page
+  if (to.path === '/register') {
+    next();
+    return;
+  }
+
+  // For all other routes, check authentication and authority
+  const authStatus = localStorage.getItem('isAuthenticated');
+  const authority = localStorage.getItem('userAuthority');
+
+  if (authStatus === 'true' && authority) {
+    // User is authenticated with authority, allow access
+    next();
+  } else {
+    // User is not authenticated or doesn't have authority, redirect to login
+    next('/login');
+  }
+});
+
 // Enhanced error handling for dynamic import issues
 router.onError((err, to) => {
   if (err?.message?.includes?.('Failed to fetch dynamically imported module')) {

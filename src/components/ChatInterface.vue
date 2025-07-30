@@ -13,8 +13,8 @@
           </v-avatar>
           <div>
             <div class="font-weight-medium text-black">{{ currentSession?.title || 'Peruri Bot' }}</div>
-            <div class="text-caption text-black" style="opacity: 0.7" v-if="currentUser">
-              Welcome, {{ currentUser }}
+            <div class="text-caption text-black" style="opacity: 0.7" v-if="currentUser && userAuthority">
+              Welcome, {{ currentUser }} ({{ authorityDisplayName }})
             </div>
           </div>
         </div>
@@ -152,6 +152,7 @@
 </template>
 
 <script lang="ts" setup>
+  import { computed, ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { useAuth } from '../composables/useAuth';
   import { useChat } from '../composables/useChat';
@@ -170,8 +171,24 @@
     initialize,
   } = useChat();
 
-  const { currentUser, logout } = useAuth();
+  const { currentUser, userAuthority, logout } = useAuth();
   const router = useRouter();
+
+  // Authority display mapping
+  const authorityDisplayName = computed(() => {
+    switch (userAuthority.value) {
+      case 'ALL':
+        return 'Semua Akses';
+      case 'SDM':
+        return 'SDM';
+      case 'HUKUM':
+        return 'Hukum';
+      case 'ADMIN':
+        return 'Administrator';
+      default:
+        return 'Unknown';
+    }
+  });
 
   const messagesEnd = ref<HTMLElement>();
   const sidebarOpen = ref(true); // Sidebar open state

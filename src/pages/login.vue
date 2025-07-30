@@ -1,104 +1,53 @@
 <template>
-  <div class="login-container">
-    <div class="login-content">
+  <div class="landing-container">
+    <div class="landing-content">
       <!-- Left side - Image -->
-      <div class="login-image">
+      <div class="landing-image">
         <img src="../assets/peruri_front_gate_office.png" alt="PERURI" class="peruri-background-image" />
       </div>
 
-      <!-- Right side - Login Form -->
-      <div class="login-form-container">
-        <div class="login-form">
-          <div class="login-header">
-            <h1 class="login-title">LOGIN</h1>
-            <p class="login-subtitle">Selamat Datang, Silahkan masuk ke akun aplikasi anda!</p>
+      <!-- Right side - Authority Selection -->
+      <div class="landing-form-container">
+        <div class="landing-form">
+          <div class="landing-header">
+            <h1 class="landing-title">SELAMAT DATANG</h1>
+            <p class="landing-subtitle">Silahkan pilih otoritas untuk mengakses aplikasi Chat Bot PERURI</p>
           </div>
 
-          <v-form @submit.prevent="handleLogin" class="form">
-            <div class="form-group">
-              <label class="form-label">Username / NIP</label>
-              <v-text-field
-                v-model="credentials.username"
-                placeholder="Masukkan Username / NIP"
-                variant="outlined"
-                density="comfortable"
-                hide-details="auto"
-                :error-messages="errors.username"
-                class="login-input"
-              />
-            </div>
+          <div class="authority-selection">
+            <h2 class="authority-title">Pilih Otoritas Anda</h2>
 
-            <div class="form-group">
-              <label class="form-label">Password</label>
-              <v-text-field
-                v-model="credentials.password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="at least 8 characters"
-                variant="outlined"
-                density="comfortable"
-                hide-details="auto"
-                :error-messages="errors.password"
-                class="login-input"
-                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showPassword = !showPassword"
-              />
-            </div>
-
-            <div class="form-options">
-              <v-checkbox
-                v-model="rememberMe"
-                label="Remember me"
-                density="compact"
-                hide-details
-                class="remember-checkbox"
-              />
-              <a href="#" class="forgot-password">Forgot Password ?</a>
+            <div class="authority-grid">
+              <v-card
+                v-for="authority in authorities"
+                :key="authority.code"
+                class="authority-card"
+                :class="{ selected: selectedAuthority === authority.code }"
+                @click="selectAuthority(authority.code)"
+                hover
+                elevation="2"
+              >
+                <v-card-title class="authority-card-title">
+                  {{ authority.name }}
+                </v-card-title>
+                <v-card-text class="authority-card-description">
+                  {{ authority.description }}
+                </v-card-text>
+              </v-card>
             </div>
 
             <v-btn
-              type="submit"
+              v-if="selectedAuthority"
+              @click="handleContinue"
+              class="continue-btn"
               color="primary"
-              variant="flat"
               size="large"
               block
-              class="login-btn"
-              :loading="isLoading"
-              :disabled="!isFormValid"
+              :loading="loading"
             >
-              Login
+              Lanjutkan ke Chat Bot
             </v-btn>
-
-            <!-- Quick Demo Login Button -->
-            <v-btn
-              color="secondary"
-              variant="outlined"
-              size="large"
-              block
-              class="demo-login-btn"
-              @click="handleDemoLogin"
-              :disabled="isLoading"
-            >
-              Quick Demo Login
-            </v-btn>
-
-            <!-- Clear Auth Button for debugging -->
-            <v-btn
-              color="error"
-              variant="text"
-              size="small"
-              block
-              class="clear-auth-btn"
-              @click="handleClearAuth"
-              :disabled="isLoading"
-            >
-              Clear Auth Data (Debug)
-            </v-btn>
-
-            <div class="register-link">
-              Belum terdaftar?
-              <router-link to="/register" class="register-link-text">Register disini</router-link>
-            </div>
-          </v-form>
+          </div>
         </div>
       </div>
     </div>
@@ -106,108 +55,71 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+  import { ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { useAuth } from '../composables/useAuth';
+  import type { Authority } from '../types/chat';
 
-  interface LoginCredentials {
-    username: string;
-    password: string;
+  interface AuthorityOption {
+    code: Authority;
+    name: string;
+    description: string;
   }
 
   const router = useRouter();
-  const { login } = useAuth();
+  const { setAuthorityAndAuthenticate } = useAuth();
 
-  const credentials = ref<LoginCredentials>({
-    username: '',
-    password: '',
-  });
+  const selectedAuthority = ref<Authority | null>(null);
+  const loading = ref(false);
 
-  const errors = ref({
-    username: '',
-    password: '',
-  });
+  const authorities: AuthorityOption[] = [
+    {
+      code: 'ALL',
+      name: 'Semua Akses',
+      description: 'Akses penuh ke semua fitur Chat Bot',
+    },
+    {
+      code: 'SDM',
+      name: 'SDM',
+      description: 'Akses Chat Bot untuk divisi Sumber Daya Manusia',
+    },
+    {
+      code: 'HUKUM',
+      name: 'Hukum',
+      description: 'Akses Chat Bot untuk divisi Hukum',
+    },
+    {
+      code: 'ADMIN',
+      name: 'Administrator',
+      description: 'Akses administrasi sistem Chat Bot',
+    },
+  ];
 
-  const showPassword = ref(false);
-  const rememberMe = ref(false);
-  const isLoading = ref(false);
-
-  const isFormValid = computed(() => {
-    return credentials.value.username.length > 0 && credentials.value.password.length >= 8;
-  });
-
-  const validateForm = () => {
-    errors.value = { username: '', password: '' };
-    let isValid = true;
-
-    if (!credentials.value.username) {
-      errors.value.username = 'Username / NIP is required';
-      isValid = false;
-    }
-
-    if (!credentials.value.password) {
-      errors.value.password = 'Password is required';
-      isValid = false;
-    } else if (credentials.value.password.length < 8) {
-      errors.value.password = 'Password must be at least 8 characters';
-      isValid = false;
-    }
-
-    return isValid;
+  const selectAuthority = (authority: Authority) => {
+    selectedAuthority.value = authority;
   };
 
-  const handleLogin = async () => {
-    if (!validateForm()) return;
+  const handleContinue = async () => {
+    if (!selectedAuthority.value) return;
 
-    isLoading.value = true;
+    loading.value = true;
 
     try {
-      // Use the auth composable login function
-      const success = await login(credentials.value.username, credentials.value.password);
+      // Set authority and authenticate user via SSO simulation
+      await setAuthorityAndAuthenticate(selectedAuthority.value);
 
-      if (success) {
-        // Navigate to home/chat page
-        router.push('/');
-      } else {
-        errors.value.username = 'Invalid credentials';
-      }
+      // Navigate to chat bot page
+      router.push('/');
     } catch (error) {
-      console.error('Login error:', error);
-      errors.value.username = 'Login failed. Please try again.';
+      console.error('Authority selection error:', error);
     } finally {
-      isLoading.value = false;
+      loading.value = false;
     }
-  };
-
-  const handleDemoLogin = async () => {
-    isLoading.value = true;
-
-    try {
-      // Use demo credentials
-      const success = await login('demo_user', 'password123');
-
-      if (success) {
-        router.push('/');
-      }
-    } catch (error) {
-      console.error('Demo login error:', error);
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  const handleClearAuth = () => {
-    // Clear all auth data for debugging
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('username');
-    localStorage.removeItem('authToken');
-    console.log('Auth data cleared');
-    window.location.reload();
   };
 </script>
 
 <style scoped>
-  .login-container {
+  .landing-container {
     min-height: 100vh;
     max-height: 100vh;
     display: flex;
@@ -215,13 +127,13 @@
     overflow: hidden;
   }
 
-  .login-content {
+  .landing-content {
     display: flex;
     width: 100%;
     height: 100vh;
   }
 
-  .login-image {
+  .landing-image {
     flex: 1;
     position: relative;
     background: linear-gradient(135deg, #202887 0%, #1a1f6b 100%);
@@ -237,7 +149,7 @@
     display: block;
   }
 
-  .login-form-container {
+  .landing-form-container {
     flex: 1;
     display: flex;
     align-items: center;
@@ -248,88 +160,110 @@
     max-height: 100vh;
   }
 
-  .login-form {
+  .landing-form {
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     background: white;
     padding: 3rem 2.5rem;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
 
-  .login-header {
+  .landing-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
   }
 
-  .login-title {
-    font-size: 2rem;
+  .landing-title {
+    font-size: 2.2rem;
     font-weight: 700;
     color: #202887;
     margin-bottom: 0.5rem;
   }
 
-  .login-subtitle {
+  .landing-subtitle {
     color: #666;
-    font-size: 0.95rem;
+    font-size: 1rem;
     line-height: 1.4;
     margin: 0;
   }
 
-  .form {
+  .authority-selection {
     width: 100%;
   }
 
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .form-label {
-    display: block;
-    font-weight: 500;
+  .authority-title {
+    font-size: 1.3rem;
+    font-weight: 600;
     color: #333;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-  }
-
-  .login-input :deep(.v-field) {
-    border-radius: 8px;
-  }
-
-  .login-input :deep(.v-field__input) {
-    padding: 12px 16px !important;
-    font-family: 'Manrope', sans-serif;
-  }
-
-  .form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 1.5rem;
+    text-align: center;
   }
 
-  .remember-checkbox :deep(.v-selection-control) {
-    min-height: auto;
+  .authority-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
   }
 
-  .remember-checkbox :deep(.v-label) {
-    font-size: 0.85rem;
-    color: #666;
-    font-family: 'Manrope', sans-serif;
+  .authority-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px !important;
+    background-color: white;
   }
 
-  .forgot-password {
-    color: #202887;
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 500;
+  .authority-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    border-color: #202887;
   }
 
-  .forgot-password:hover {
-    text-decoration: underline;
+  .authority-card.selected {
+    border-color: #202887;
+    background-color: rgba(32, 40, 135, 0.05);
   }
 
-  .login-btn {
+  /* Default (inactive) state - dark text for better visibility */
+  .authority-card-title {
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    color: #333 !important;
+    text-align: center;
+    padding-bottom: 0.5rem !important;
+    transition: color 0.3s ease;
+  }
+
+  .authority-card-description {
+    font-size: 0.85rem !important;
+    color: #666 !important;
+    text-align: center;
+    line-height: 1.4;
+    padding-top: 0 !important;
+    transition: color 0.3s ease;
+  }
+
+  /* Selected state - primary color text */
+  .authority-card.selected .authority-card-title {
+    color: #202887 !important;
+  }
+
+  .authority-card.selected .authority-card-description {
+    color: #444 !important;
+  }
+
+  /* Hover state - primary color text */
+  .authority-card:hover .authority-card-title {
+    color: #202887 !important;
+  }
+
+  .authority-card:hover .authority-card-description {
+    color: #444 !important;
+  }
+
+  .continue-btn {
     background-color: #202887 !important;
     color: white !important;
     font-weight: 600;
@@ -337,92 +271,55 @@
     font-size: 1rem;
     border-radius: 8px;
     height: 48px;
-    margin-bottom: 1.5rem;
     font-family: 'Manrope', sans-serif;
+    margin-top: 1rem;
   }
 
-  .login-btn:hover {
+  .continue-btn:hover {
     background-color: #1a1f6b !important;
-  }
-
-  .demo-login-btn {
-    color: #d398e7 !important;
-    border-color: #d398e7 !important;
-    font-weight: 600;
-    text-transform: none;
-    font-size: 0.9rem;
-    border-radius: 8px;
-    height: 44px;
-    margin-bottom: 1.5rem;
-    margin-top: 0.5rem;
-    font-family: 'Manrope', sans-serif;
-  }
-
-  .demo-login-btn:hover {
-    background-color: rgba(211, 152, 231, 0.1) !important;
-  }
-
-  .clear-auth-btn {
-    font-size: 0.75rem !important;
-    margin-top: 0.5rem;
-    opacity: 0.7;
-    font-family: 'Manrope', sans-serif;
-  }
-
-  .clear-auth-btn:hover {
-    opacity: 1;
-  }
-
-  .register-link {
-    text-align: center;
-    font-size: 0.9rem;
-    color: #666;
-  }
-
-  .register-link-text {
-    color: #202887;
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .register-link-text:hover {
-    text-decoration: underline;
   }
 
   /* Responsive design */
   @media (max-width: 768px) {
-    .login-content {
+    .landing-content {
       flex-direction: column;
     }
 
-    .login-image {
+    .landing-image {
       min-height: 30vh;
       flex: none;
     }
 
-    .login-form-container {
+    .landing-form-container {
       flex: none;
       padding: 1rem;
     }
 
-    .login-form {
+    .landing-form {
       padding: 2rem 1.5rem;
     }
 
-    .login-title {
-      font-size: 1.75rem;
+    .landing-title {
+      font-size: 1.8rem;
+    }
+
+    .authority-grid {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
     }
   }
 
   @media (max-width: 480px) {
-    .form-options {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
+    .landing-form {
+      max-width: 100%;
     }
 
-    .forgot-password {
-      align-self: flex-end;
+    .authority-card-title {
+      font-size: 1rem !important;
+    }
+
+    .authority-card-description {
+      font-size: 0.8rem !important;
     }
   }
 </style>
