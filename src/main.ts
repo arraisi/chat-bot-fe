@@ -15,6 +15,7 @@ import App from './App.vue';
 
 // Styles
 import 'unfonts.css';
+import './assets/global.css'; // Import global Montserrat font styles
 
 const app = createApp(App);
 

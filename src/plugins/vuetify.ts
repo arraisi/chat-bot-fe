@@ -30,7 +30,7 @@ export default createVuetify({
           'on-primary': '#FFFFFF', // White text on primary background
           'on-secondary': '#FFFFFF', // White text on secondary background
           'on-surface': '#FFFFFF', // White text on surface (sidebar)
-          'on-background': '#000000', // Black text on white background
+          'on-background': '#1a1a1a', // Smooth black text on white background
         },
       },
     },

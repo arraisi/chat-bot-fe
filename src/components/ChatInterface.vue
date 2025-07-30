@@ -116,7 +116,7 @@
               <div v-if="messages.length === 0" class="empty-state">
                 <div class="text-center">
                   <v-icon size="80" color="primary" class="mb-4">mdi-robot-excited</v-icon>
-                  <h2 class="mb-2 text-h4">Welcome to Chat Bot</h2>
+                  <h2 class="mb-2 text-h4">Welcome to Peruri Chat Bot</h2>
                   <p class="text-body-1 text-medium-emphasis mb-4">
                     Start a conversation with our AI assistant. Ask questions, get help, or just chat!
                   </p>
