@@ -100,7 +100,7 @@
 
     <!-- Footer with User Info -->
     <div class="sidebar-footer">
-      <v-divider color="white" class="custom-divider" />
+      <v-divider color="white" />
       <v-list-item class="pa-4">
         <template #prepend>
           <v-avatar size="36" color="white">

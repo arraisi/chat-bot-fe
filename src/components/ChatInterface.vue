@@ -12,8 +12,8 @@
             <v-icon color="white">mdi-robot</v-icon>
           </v-avatar>
           <div>
-            <div class="font-weight-medium text-black">{{ currentSession?.title || 'Chat Bot' }}</div>
-            <div class="text-caption text-black" style="opacity: 0.7">AI Assistant</div>
+            <div class="font-weight-medium text-black">{{ currentSession?.title || 'Peruri Bot' }}</div>
+            <!-- <div class="text-caption text-black" style="opacity: 0.7">AI Assistant</div> -->
           </div>
         </div>
       </v-toolbar-title>
@@ -21,20 +21,68 @@
       <v-spacer />
 
       <!-- App Bar Actions -->
-      <v-btn icon @click="createNewSession">
+      <!-- <v-btn icon @click="createNewSession">
         <v-icon color="black">mdi-plus</v-icon>
         <v-tooltip activator="parent" location="bottom">New Chat</v-tooltip>
-      </v-btn>
+      </v-btn> -->
 
-      <v-btn icon @click="createNewSession">
+      <!-- <v-btn icon @click="createNewSession">
         <v-icon color="black">mdi-refresh</v-icon>
         <v-tooltip activator="parent" location="bottom">Refresh</v-tooltip>
-      </v-btn>
+      </v-btn> -->
 
-      <v-btn icon>
-        <v-icon color="black">mdi-dots-vertical</v-icon>
-        <v-tooltip activator="parent" location="bottom">More options</v-tooltip>
-      </v-btn>
+      <!-- Settings Menu with Expandable Actions -->
+      <v-menu location="bottom end" offset="8" v-model="accountMenuOpen" :close-on-content-click="false">
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props">
+            <v-icon color="black">mdi-account-circle</v-icon>
+            <v-tooltip activator="parent" location="bottom">Account</v-tooltip>
+          </v-btn>
+        </template>
+        <v-list density="comfortable" min-width="200" color="white" class="account-menu">
+          <!-- Profile/Account Settings -->
+          <v-list-item @click="handlePreferences">
+            <template #prepend>
+              <v-icon color="primary">mdi-account-cog</v-icon>
+            </template>
+            <v-list-item-title class="text-black">Profile Settings</v-list-item-title>
+            <v-list-item-subtitle class="text-black" style="opacity: 0.7">User settings</v-list-item-subtitle>
+          </v-list-item>
+
+          <!-- Theme Settings Expandable -->
+          <v-list-group>
+            <template #activator="{ props: groupProps }">
+              <v-list-item v-bind="groupProps">
+                <template #prepend>
+                  <v-icon color="primary">mdi-palette</v-icon>
+                </template>
+                <v-list-item-title class="text-black">Theme Settings</v-list-item-title>
+                <v-list-item-subtitle class="text-black" style="opacity: 0.7">Light/Dark mode</v-list-item-subtitle>
+              </v-list-item>
+            </template>
+            <v-list-item @click="handleToggleTheme('light')">
+              <template #prepend>
+                <v-icon color="primary">mdi-white-balance-sunny</v-icon>
+              </template>
+              <v-list-item-title class="text-black">Light</v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="handleToggleTheme('dark')">
+              <template #prepend>
+                <v-icon color="primary">mdi-weather-night</v-icon>
+              </template>
+              <v-list-item-title class="text-black">Dark</v-list-item-title>
+            </v-list-item>
+          </v-list-group>
+
+          <!-- Logout -->
+          <v-list-item @click="handleLogout">
+            <template #prepend>
+              <v-icon color="error">mdi-logout</v-icon>
+            </template>
+            <v-list-item-title class="text-black">Logout</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
 
     <!-- Navigation Drawer (Collapsible Sidebar) - Higher hierarchy -->
@@ -52,6 +100,8 @@
         @delete-session="deleteSession"
         @new-chat="createNewSession"
         @switch-session="switchToSession"
+        @upload-file="handleUploadFile"
+        @search-chat="handleSearchChat"
       />
     </v-navigation-drawer>
 
@@ -119,6 +169,7 @@
 
   const messagesEnd = ref<HTMLElement>();
   const sidebarOpen = ref(true); // Sidebar open state
+  const accountMenuOpen = ref(false); // Account menu open state
 
   // Computed style for flexible app bar
   const appBarStyle = computed(() => ({
@@ -145,6 +196,72 @@
   const handleSendMessage = async (message: string) => {
     await sendMessageMock(message); // Change to sendMessage when you have real API
     scrollToBottom();
+  };
+
+  // Account menu handlers
+  const handleToggleTheme = (theme: 'light' | 'dark') => {
+    // Toggle between light and dark theme
+    console.log(`Switching to ${theme} theme`);
+    // Here you would implement theme switching logic
+    // For example: useTheme().global.name.value = theme
+
+    // Close the menu after theme selection
+    accountMenuOpen.value = false;
+  };
+
+  const handlePreferences = () => {
+    // Open preferences dialog
+    console.log('Preferences - functionality to be implemented');
+    // Here you would open a preferences dialog or navigate to settings page
+
+    // Close the menu after action
+    accountMenuOpen.value = false;
+  };
+
+  const handleLogout = () => {
+    // Handle user logout
+    if (confirm('Are you sure you want to logout?')) {
+      // Clear user session data
+      localStorage.removeItem('userSession');
+      localStorage.removeItem('authToken');
+
+      // Optionally clear chat data as well
+      localStorage.removeItem('chatSessions');
+      localStorage.removeItem('currentSessionId');
+
+      // Reinitialize the chat system
+      initialize();
+
+      console.log('User logged out successfully');
+      // Here you would redirect to login page or show login dialog
+    }
+
+    // Close the menu after action
+    accountMenuOpen.value = false;
+  };
+
+  // Sidebar action handlers
+  const handleUploadFile = () => {
+    // Handle file upload from sidebar
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.txt,.pdf,.doc,.docx,.md';
+    input.onchange = event => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        console.log('File selected for upload:', file.name);
+        // Here you would implement file processing logic
+        // For example, reading the file content and adding it to the chat
+      }
+    };
+    input.click();
+  };
+
+  const handleSearchChat = () => {
+    // Handle search chat functionality
+    console.log('Search chat - functionality to be implemented');
+    // Here you would implement search functionality
+    // For example, opening a search dialog or highlighting search terms
   };
 
   // Initialize the chat system
@@ -278,5 +395,29 @@
   /* Ensure proper spacing in light theme */
   :deep(.v-main) {
     background-color: rgb(var(--v-theme-background));
+  }
+
+  /* Account menu styling */
+  .account-menu {
+    background-color: white !important;
+    border: 1px solid rgb(var(--v-theme-outline-variant));
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  :deep(.account-menu .v-list-item) {
+    color: black !important;
+  }
+
+  :deep(.account-menu .v-list-item:hover) {
+    background-color: rgba(211, 152, 231, 0.1) !important;
+  }
+
+  :deep(.account-menu .v-list-group__items .v-list-item) {
+    padding-left: 56px !important;
+  }
+
+  :deep(.account-menu .v-list-group__items .v-list-item:hover) {
+    background-color: rgba(211, 152, 231, 0.15) !important;
   }
 </style>
