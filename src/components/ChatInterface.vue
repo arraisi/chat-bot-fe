@@ -13,7 +13,9 @@
           </v-avatar>
           <div>
             <div class="font-weight-medium text-black">{{ currentSession?.title || 'Peruri Bot' }}</div>
-            <!-- <div class="text-caption text-black" style="opacity: 0.7">AI Assistant</div> -->
+            <div class="text-caption text-black" style="opacity: 0.7" v-if="currentUser">
+              Welcome, {{ currentUser }}
+            </div>
           </div>
         </div>
       </v-toolbar-title>
@@ -150,6 +152,8 @@
 </template>
 
 <script lang="ts" setup>
+  import { useRouter } from 'vue-router';
+  import { useAuth } from '../composables/useAuth';
   import { useChat } from '../composables/useChat';
 
   const {
@@ -165,6 +169,9 @@
     sendMessageMock, // Change to sendMessage when you have real API
     initialize,
   } = useChat();
+
+  const { currentUser, logout } = useAuth();
+  const router = useRouter();
 
   const messagesEnd = ref<HTMLElement>();
   const sidebarOpen = ref(true); // Sidebar open state
@@ -220,9 +227,8 @@
   const handleLogout = () => {
     // Handle user logout
     if (confirm('Are you sure you want to logout?')) {
-      // Clear user session data
-      localStorage.removeItem('userSession');
-      localStorage.removeItem('authToken');
+      // Use auth composable to logout
+      logout();
 
       // Optionally clear chat data as well
       localStorage.removeItem('chatSessions');
@@ -232,7 +238,9 @@
       initialize();
 
       console.log('User logged out successfully');
-      // Here you would redirect to login page or show login dialog
+
+      // Redirect to login page
+      router.push('/login');
     }
 
     // Close the menu after action
