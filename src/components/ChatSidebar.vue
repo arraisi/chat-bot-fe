@@ -77,14 +77,14 @@
         </template>
 
         <v-list-item-title class="font-weight-medium text-white">User</v-list-item-title>
-        <v-list-item-subtitle class="text-white" style="opacity: 0.8">Free Plan</v-list-item-subtitle>
+        <v-list-item-subtitle class="text-white" style="opacity: 0.8">Welcome Back!</v-list-item-subtitle>
 
-        <template #append>
+        <!-- <template #append>
           <v-btn icon size="small" variant="text">
-            <v-icon>mdi-cog</v-icon>
+            <v-icon color="white">mdi-cog</v-icon>
             <v-tooltip activator="parent" location="top">Settings</v-tooltip>
           </v-btn>
-        </template>
+        </template> -->
       </v-list-item>
     </div>
   </div>
@@ -171,7 +171,7 @@
 
   .sidebar-footer {
     flex-shrink: 0;
-    background-color: rgb(var(--v-theme-surface-variant));
+    background-color: rgb(var(--v-theme-primary));
   }
 
   .chat-session-item {

@@ -1,19 +1,19 @@
 <template>
   <v-app>
     <!-- App Bar -->
-    <v-app-bar elevation="1" color="primary" dark>
+    <v-app-bar elevation="1" color="white">
       <!-- Sidebar Toggle Button -->
-      <v-app-bar-nav-icon @click="sidebarOpen = !sidebarOpen" />
+      <v-app-bar-nav-icon color="black" @click="sidebarOpen = !sidebarOpen" />
 
       <!-- App Bar Title -->
       <v-toolbar-title class="d-flex align-center">
         <div class="d-flex align-center">
-          <v-avatar size="32" class="me-2">
-            <v-icon>mdi-robot</v-icon>
+          <v-avatar size="32" class="me-2" color="primary">
+            <v-icon color="white">mdi-robot</v-icon>
           </v-avatar>
           <div>
-            <div class="font-weight-medium">{{ currentSession?.title || 'Chat Bot' }}</div>
-            <div class="text-caption opacity-80">AI Assistant</div>
+            <div class="font-weight-medium text-black">{{ currentSession?.title || 'Chat Bot' }}</div>
+            <div class="text-caption text-black" style="opacity: 0.7">AI Assistant</div>
           </div>
         </div>
       </v-toolbar-title>
@@ -22,17 +22,17 @@
 
       <!-- App Bar Actions -->
       <v-btn icon @click="createNewSession">
-        <v-icon>mdi-plus</v-icon>
+        <v-icon color="black">mdi-plus</v-icon>
         <v-tooltip activator="parent" location="bottom">New Chat</v-tooltip>
       </v-btn>
 
       <v-btn icon @click="createNewSession">
-        <v-icon>mdi-refresh</v-icon>
+        <v-icon color="black">mdi-refresh</v-icon>
         <v-tooltip activator="parent" location="bottom">Refresh</v-tooltip>
       </v-btn>
 
       <v-btn icon>
-        <v-icon>mdi-dots-vertical</v-icon>
+        <v-icon color="black">mdi-dots-vertical</v-icon>
         <v-tooltip activator="parent" location="bottom">More options</v-tooltip>
       </v-btn>
     </v-app-bar>
@@ -153,6 +153,7 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--v-theme-outline)) transparent;
+    background-color: #f5f5f5;
   }
 
   .chat-messages-container::-webkit-scrollbar {
@@ -195,7 +196,7 @@
 
   .chat-input-container {
     flex-shrink: 0;
-    background-color: rgb(var(--v-theme-surface));
+    background-color: white;
     border-top: 1px solid rgb(var(--v-theme-outline-variant));
     position: sticky;
     bottom: 0;

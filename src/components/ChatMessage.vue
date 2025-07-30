@@ -90,7 +90,7 @@
 
   .assistant-message {
     margin-right: auto;
-    background-color: rgb(var(--v-theme-surface-variant));
+    background-color: white !important;
     color: black !important;
   }
 
