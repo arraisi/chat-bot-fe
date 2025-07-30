@@ -18,15 +18,19 @@ export default createVuetify({
     themes: {
       light: {
         colors: {
-          primary: '#1976D2',
-          secondary: '#424242',
+          primary: '#202887', // Custom primary color for sidebar
+          secondary: '#D398E7', // Custom secondary color for hover/active states
           accent: '#82B1FF',
           error: '#FF5252',
           info: '#2196F3',
           success: '#4CAF50',
           warning: '#FFC107',
-          background: '#FAFAFA',
-          surface: '#FFFFFF',
+          background: '#FFFFFF', // White background
+          surface: '#202887', // Primary color for surfaces (sidebar, app bar)
+          'on-primary': '#FFFFFF', // White text on primary background
+          'on-secondary': '#FFFFFF', // White text on secondary background
+          'on-surface': '#FFFFFF', // White text on surface (sidebar)
+          'on-background': '#000000', // Black text on white background
         },
       },
     },

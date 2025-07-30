@@ -5,22 +5,23 @@
       <v-list-item class="pa-4">
         <v-btn
           block
-          color="primary"
+          color="white"
           prepend-icon="mdi-plus"
           text="New Chat"
           variant="flat"
+          class="text-primary font-weight-bold"
           @click="$emit('new-chat')"
         />
       </v-list-item>
     </div>
 
-    <v-divider />
+    <v-divider color="rgba(255,255,255,0.2)" />
 
     <!-- Chat History - Scrollable -->
     <div class="sidebar-content">
-      <v-list density="comfortable" nav>
-        <v-list-subheader class="text-primary font-weight-medium">
-          <v-icon start>mdi-history</v-icon>
+      <v-list density="comfortable" nav class="text-white">
+        <v-list-subheader class="text-white font-weight-bold text-uppercase">
+          <v-icon start color="white">mdi-history</v-icon>
           Chat History
         </v-list-subheader>
 
@@ -30,25 +31,25 @@
             :key="session.id"
             :active="currentSessionId === session.id"
             :value="session.id"
-            class="chat-session-item mb-1"
+            class="chat-session-item mb-1 text-white"
             rounded="lg"
             @click="$emit('switch-session', session.id)"
           >
             <template #prepend>
-              <v-icon size="20">mdi-chat-outline</v-icon>
+              <v-icon size="20" color="white">mdi-chat-outline</v-icon>
             </template>
 
-            <v-list-item-title class="text-truncate font-weight-medium">
+            <v-list-item-title class="text-truncate font-weight-medium text-white">
               {{ session.title }}
             </v-list-item-title>
 
-            <v-list-item-subtitle class="text-caption">
+            <v-list-item-subtitle class="text-caption text-white" style="opacity: 0.8">
               {{ formatDate(session.updatedAt) }}
             </v-list-item-subtitle>
 
             <template #append>
-              <v-btn icon size="small" variant="text" color="error" @click.stop="$emit('delete-session', session.id)">
-                <v-icon size="16">mdi-trash-can-outline</v-icon>
+              <v-btn icon size="small" variant="text" @click.stop="$emit('delete-session', session.id)">
+                <v-icon size="16" color="white">mdi-trash-can-outline</v-icon>
                 <v-tooltip activator="parent" location="bottom">Delete Chat</v-tooltip>
               </v-btn>
             </template>
@@ -57,9 +58,9 @@
 
         <v-list-item v-else class="text-center py-8">
           <div class="text-center w-100">
-            <v-icon size="48" color="grey-lighten-1" class="mb-2">mdi-chat-plus-outline</v-icon>
-            <div class="text-body-2 text-medium-emphasis">No chat history yet</div>
-            <div class="text-caption text-disabled">Start a new conversation</div>
+            <v-icon size="48" color="white" class="mb-2" style="opacity: 0.6">mdi-chat-plus-outline</v-icon>
+            <div class="text-body-2 text-white" style="opacity: 0.8">No chat history yet</div>
+            <div class="text-caption text-white" style="opacity: 0.6">Start a new conversation</div>
           </div>
         </v-list-item>
       </v-list>
@@ -67,16 +68,16 @@
 
     <!-- Footer with User Info -->
     <div class="sidebar-footer">
-      <v-divider />
+      <v-divider color="rgba(255,255,255,0.2)" />
       <v-list-item class="pa-4">
         <template #prepend>
-          <v-avatar size="36" color="primary">
-            <v-icon>mdi-account</v-icon>
+          <v-avatar size="36" color="white">
+            <v-icon color="primary">mdi-account</v-icon>
           </v-avatar>
         </template>
 
-        <v-list-item-title class="font-weight-medium">User</v-list-item-title>
-        <v-list-item-subtitle>Free Plan</v-list-item-subtitle>
+        <v-list-item-title class="font-weight-medium text-white">User</v-list-item-title>
+        <v-list-item-subtitle class="text-white" style="opacity: 0.8">Free Plan</v-list-item-subtitle>
 
         <template #append>
           <v-btn icon size="small" variant="text">
@@ -179,21 +180,21 @@
   }
 
   .chat-session-item:hover {
-    background-color: rgb(var(--v-theme-surface-variant)) !important;
+    background-color: rgba(211, 152, 231, 0.1) !important;
   }
 
   .chat-session-item.v-list-item--active {
-    background-color: rgb(var(--v-theme-primary-lighten-5)) !important;
-    color: rgb(var(--v-theme-primary)) !important;
+    background-color: rgba(211, 152, 231, 0.2) !important;
+    color: white !important;
   }
 
   .chat-session-item.v-list-item--active .v-list-item-title {
-    color: rgb(var(--v-theme-primary)) !important;
+    color: white !important;
     font-weight: 600;
   }
 
   .chat-session-item.v-list-item--active .v-icon {
-    color: rgb(var(--v-theme-primary)) !important;
+    color: white !important;
   }
 
   /* Light theme specific adjustments */
@@ -221,5 +222,19 @@
 
   .chat-session-item.v-list-item--active :deep(.v-btn) {
     opacity: 1;
+  }
+
+  /* New Chat Button Hover */
+  .sidebar-header .v-btn:hover {
+    background-color: rgba(211, 152, 231, 0.1) !important;
+  }
+
+  /* Footer user info hover */
+  .sidebar-footer .v-list-item:hover {
+    background-color: rgba(211, 152, 231, 0.1) !important;
+  }
+
+  .sidebar-footer .v-btn:hover {
+    background-color: rgba(211, 152, 231, 0.2) !important;
   }
 </style>

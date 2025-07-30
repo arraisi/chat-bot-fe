@@ -49,11 +49,24 @@
     'assistant-message': props.message.role === 'assistant',
   }));
 
-  const formatTime = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatTime = (timestamp: Date | string | number) => {
+    try {
+      // Convert to Date object if it's not already
+      const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return 'Invalid time';
+      }
+
+      return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      console.warn('Error formatting time:', error);
+      return 'Invalid time';
+    }
   };
 </script>
 
@@ -65,14 +78,25 @@
 
   .user-message {
     margin-left: auto;
-    background-color: rgb(var(--v-theme-primary));
-    color: rgb(var(--v-theme-on-primary));
+    background-color: white !important;
+    color: black !important;
+    border: 1px solid rgba(32, 40, 135, 0.1);
+  }
+
+  .user-message .text-caption,
+  .user-message .text-medium-emphasis {
+    color: rgba(0, 0, 0, 0.6) !important;
   }
 
   .assistant-message {
     margin-right: auto;
     background-color: rgb(var(--v-theme-surface-variant));
-    color: rgb(var(--v-theme-on-surface-variant));
+    color: black !important;
+  }
+
+  .assistant-message .text-caption,
+  .assistant-message .text-medium-emphasis {
+    color: rgba(0, 0, 0, 0.6) !important;
   }
 
   .message-content {
