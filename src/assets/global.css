@@ -1,0 +1,68 @@
+/* Global Styles - Manrope Font Family with Smooth Text Colors */
+
+/* Apply Manrope to the entire application with smooth black color */
+* {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+body {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+/* Vuetify component overrides */
+.v-application {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+.v-btn {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+.v-list-item-title,
+.v-list-item-subtitle {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+.v-toolbar-title {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+.v-text-field input,
+.v-textarea textarea {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+.v-card-title,
+.v-card-subtitle,
+.v-card-text {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+.v-dialog .v-card {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+.v-tooltip .v-overlay__content {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+.v-menu .v-list {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+/* Headings with smooth black color */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Manrope', sans-serif !important;
+}
+
+/* Paragraph and text elements with smooth black color */
+p,
+span,
+div {
+  font-family: 'Manrope', sans-serif !important;
+}

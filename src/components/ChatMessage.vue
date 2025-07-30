@@ -79,24 +79,24 @@
   .user-message {
     margin-left: auto;
     background-color: white !important;
-    color: black !important;
+    color: #1a1a1a !important;
     border: 1px solid rgba(32, 40, 135, 0.1);
   }
 
   .user-message .text-caption,
   .user-message .text-medium-emphasis {
-    color: rgba(0, 0, 0, 0.6) !important;
+    color: rgba(26, 26, 26, 0.6) !important;
   }
 
   .assistant-message {
     margin-right: auto;
     background-color: white !important;
-    color: black !important;
+    color: #1a1a1a !important;
   }
 
   .assistant-message .text-caption,
   .assistant-message .text-medium-emphasis {
-    color: rgba(0, 0, 0, 0.6) !important;
+    color: rgba(26, 26, 26, 0.6) !important;
   }
 
   .message-content {
