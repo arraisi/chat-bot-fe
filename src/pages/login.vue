@@ -17,24 +17,32 @@
           <div class="authority-selection">
             <h2 class="authority-title">Pilih Otoritas Anda</h2>
 
-            <div class="authority-grid">
-              <v-card
-                v-for="authority in authorities"
-                :key="authority.code"
-                class="authority-card"
-                :class="{ selected: selectedAuthority === authority.code }"
-                @click="selectAuthority(authority.code)"
-                hover
-                elevation="2"
-              >
-                <v-card-title class="authority-card-title">
-                  {{ authority.name }}
-                </v-card-title>
-                <v-card-text class="authority-card-description">
-                  {{ authority.description }}
-                </v-card-text>
-              </v-card>
-            </div>
+            <v-select
+              v-model="selectedAuthority"
+              :items="authorities"
+              item-title="name"
+              item-value="code"
+              label="Pilih Otoritas"
+              variant="outlined"
+              density="comfortable"
+              class="authority-dropdown"
+              placeholder="Silakan pilih otoritas Anda"
+            >
+              <template #prepend-inner>
+                <v-icon color="#202887">mdi-shield-account</v-icon>
+              </template>
+              <template #item="{ item, props }">
+                <v-list-item v-bind="props" class="authority-option">
+                  <template #prepend>
+                    <v-icon color="#202887" class="me-3">mdi-shield-account</v-icon>
+                  </template>
+                  <v-list-item-title class="authority-option-title">{{ item.title }}</v-list-item-title>
+                  <v-list-item-subtitle class="authority-option-description">{{
+                    item.raw.description
+                  }}</v-list-item-subtitle>
+                </v-list-item>
+              </template>
+            </v-select>
 
             <v-btn
               v-if="selectedAuthority"
@@ -94,10 +102,6 @@
       description: 'Akses administrasi sistem Chat Bot',
     },
   ];
-
-  const selectAuthority = (authority: Authority) => {
-    selectedAuthority.value = authority;
-  };
 
   const handleContinue = async () => {
     if (!selectedAuthority.value) return;
@@ -200,67 +204,100 @@
     text-align: center;
   }
 
-  .authority-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+  .authority-dropdown {
     margin-bottom: 2rem;
   }
 
-  .authority-card {
-    cursor: pointer;
+  .authority-dropdown :deep(.v-field) {
+    border-radius: 12px;
+    background-color: #ffffff;
     transition: all 0.3s ease;
-    border: 2px solid #e0e0e0;
-    border-radius: 12px !important;
-    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
-  .authority-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+  .authority-dropdown :deep(.v-field:hover) {
     border-color: #202887;
+    box-shadow: 0 2px 8px rgba(32, 40, 135, 0.1);
   }
 
-  .authority-card.selected {
+  .authority-dropdown :deep(.v-field--focused) {
     border-color: #202887;
-    background-color: rgba(32, 40, 135, 0.05);
+    box-shadow: 0 0 0 3px rgba(32, 40, 135, 0.1);
   }
 
-  /* Default (inactive) state - dark text for better visibility */
-  .authority-card-title {
-    font-weight: 600 !important;
-    font-size: 1.1rem !important;
-    color: #333 !important;
-    text-align: center;
-    padding-bottom: 0.5rem !important;
+  .authority-dropdown :deep(.v-field__input) {
+    font-weight: 500;
+    color: #2c3e50;
+    background-color: transparent;
+  }
+
+  .authority-dropdown :deep(.v-label) {
+    color: #6c757d;
+    font-weight: 500;
+  }
+
+  .authority-dropdown :deep(.v-field--focused .v-label) {
+    color: #202887;
+  }
+
+  .authority-dropdown :deep(.v-input__details) {
+    color: #6c757d;
+  }
+
+  /* Dropdown menu styling */
+  .authority-dropdown :deep(.v-overlay__content) {
+    background-color: #ffffff;
+    border: 1px solid #e3e3e3;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .authority-option {
+    padding: 12px 16px;
+    transition: all 0.2s ease;
+    background-color: #ffffff;
+  }
+
+  .authority-option:hover {
+    background-color: #f8f9ff;
+  }
+
+  .authority-option-title {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1rem;
+  }
+
+  .authority-option-description {
+    color: #6c757d;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    margin-top: 2px;
+  }
+
+  /* Selected item styling */
+  .authority-dropdown :deep(.v-field--active .v-field__input) {
+    color: #202887;
+    font-weight: 600;
+  }
+
+  /* Dropdown arrow styling */
+  .authority-dropdown :deep(.v-field__append-inner .v-icon) {
+    color: #6c757d;
     transition: color 0.3s ease;
   }
 
-  .authority-card-description {
-    font-size: 0.85rem !important;
-    color: #666 !important;
-    text-align: center;
-    line-height: 1.4;
-    padding-top: 0 !important;
-    transition: color 0.3s ease;
+  .authority-dropdown :deep(.v-field--focused .v-field__append-inner .v-icon) {
+    color: #202887;
   }
 
-  /* Selected state - primary color text */
-  .authority-card.selected .authority-card-title {
+  /* Selection highlight */
+  .authority-dropdown :deep(.v-list-item--active) {
+    background-color: #f0f7ff !important;
+  }
+
+  .authority-dropdown :deep(.v-list-item--active .authority-option-title) {
     color: #202887 !important;
-  }
-
-  .authority-card.selected .authority-card-description {
-    color: #444 !important;
-  }
-
-  /* Hover state - primary color text */
-  .authority-card:hover .authority-card-title {
-    color: #202887 !important;
-  }
-
-  .authority-card:hover .authority-card-description {
-    color: #444 !important;
   }
 
   .continue-btn {
@@ -302,11 +339,6 @@
     .landing-title {
       font-size: 1.8rem;
     }
-
-    .authority-grid {
-      grid-template-columns: 1fr;
-      gap: 0.8rem;
-    }
   }
 
   @media (max-width: 480px) {
@@ -314,12 +346,16 @@
       max-width: 100%;
     }
 
-    .authority-card-title {
-      font-size: 1rem !important;
+    .authority-dropdown :deep(.v-field__input) {
+      font-size: 0.9rem;
     }
 
-    .authority-card-description {
-      font-size: 0.8rem !important;
+    .authority-option-title {
+      font-size: 0.95rem;
+    }
+
+    .authority-option-description {
+      font-size: 0.8rem;
     }
   }
 </style>
