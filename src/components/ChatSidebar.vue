@@ -34,7 +34,7 @@
           class="text-white font-weight-medium mb-2 justify-start"
           @click="$emit('upload-file')"
         />
-
+        <!-- 
         <v-btn
           block
           color="white"
@@ -43,7 +43,7 @@
           variant="text"
           class="text-white font-weight-medium mb-2 justify-start"
           @click="$emit('search-chat')"
-        />
+        /> -->
       </v-list-item>
     </div>
 

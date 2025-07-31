@@ -110,41 +110,49 @@
     <!-- Main Content Area -->
     <v-main>
       <div class="chat-main-content">
-        <!-- Chat Messages - Scrollable -->
-        <div class="chat-messages-container">
-          <v-container fluid class="pa-0 h-100">
-            <div class="chat-messages pa-4">
-              <!-- Empty State -->
-              <div v-if="messages.length === 0" class="empty-state">
-                <div class="text-center">
-                  <v-icon size="80" color="primary" class="mb-4">mdi-robot-excited</v-icon>
-                  <h2 class="mb-2 text-h4">Welcome to Peruri Chat Bot</h2>
-                  <p class="text-body-1 text-medium-emphasis mb-4">
-                    Start a conversation with our AI assistant. Ask questions, get help, or just chat!
-                  </p>
-                  <v-btn color="primary" variant="tonal" @click="createNewSession">
-                    <v-icon start>mdi-plus</v-icon>
-                    Start New Chat
-                  </v-btn>
-                </div>
-              </div>
-
-              <!-- Messages List -->
-              <div v-else class="messages-list">
-                <ChatMessage v-for="message in messages" :key="message.id" :message="message" class="mb-4" />
-              </div>
-
-              <!-- Auto-scroll anchor -->
-              <div ref="messagesEnd" />
-            </div>
-          </v-container>
+        <!-- Upload Training View -->
+        <div v-if="showUploadView" class="upload-view-container">
+          <UploadTraining @close="closeUploadView" />
         </div>
 
-        <!-- Chat Input - Fixed at bottom -->
-        <div class="chat-input-container">
-          <v-container fluid class="pa-4">
-            <ChatInput :error="error" :is-loading="isLoading" @send-message="handleSendMessage" />
-          </v-container>
+        <!-- Chat View -->
+        <div v-else class="chat-view-container">
+          <!-- Chat Messages - Scrollable -->
+          <div class="chat-messages-container">
+            <v-container fluid class="pa-0 h-100">
+              <div class="chat-messages pa-4">
+                <!-- Empty State -->
+                <div v-if="messages.length === 0" class="empty-state">
+                  <div class="text-center">
+                    <v-icon size="80" color="primary" class="mb-4">mdi-robot-excited</v-icon>
+                    <h2 class="mb-2 text-h4">Welcome to Peruri Chat Bot</h2>
+                    <p class="text-body-1 text-medium-emphasis mb-4">
+                      Start a conversation with our AI assistant. Ask questions, get help, or just chat!
+                    </p>
+                    <v-btn color="primary" variant="tonal" @click="createNewSession">
+                      <v-icon start>mdi-plus</v-icon>
+                      Start New Chat
+                    </v-btn>
+                  </div>
+                </div>
+
+                <!-- Messages List -->
+                <div v-else class="messages-list">
+                  <ChatMessage v-for="message in messages" :key="message.id" :message="message" class="mb-4" />
+                </div>
+
+                <!-- Auto-scroll anchor -->
+                <div ref="messagesEnd" />
+              </div>
+            </v-container>
+          </div>
+
+          <!-- Chat Input - Fixed at bottom -->
+          <div class="chat-input-container">
+            <v-container fluid class="pa-4">
+              <ChatInput :error="error" :is-loading="isLoading" @send-message="handleSendMessage" />
+            </v-container>
+          </div>
         </div>
       </div>
     </v-main>
@@ -156,6 +164,7 @@
   import { useRouter } from 'vue-router';
   import { useAuth } from '../composables/useAuth';
   import { useChat } from '../composables/useChat';
+  import UploadTraining from './UploadTraining.vue';
 
   const {
     chatSessions,
@@ -193,6 +202,7 @@
   const messagesEnd = ref<HTMLElement>();
   const sidebarOpen = ref(true); // Sidebar open state
   const accountMenuOpen = ref(false); // Account menu open state
+  const showUploadView = ref(false); // Upload view state
 
   // Computed style for flexible app bar
   const appBarStyle = computed(() => ({
@@ -266,19 +276,12 @@
 
   // Sidebar action handlers
   const handleUploadFile = () => {
-    // Handle file upload from sidebar
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.txt,.pdf,.doc,.docx,.md';
-    input.onchange = event => {
-      const file = (event.target as HTMLInputElement).files?.[0];
-      if (file) {
-        console.log('File selected for upload:', file.name);
-        // Here you would implement file processing logic
-        // For example, reading the file content and adding it to the chat
-      }
-    };
-    input.click();
+    // Toggle upload view instead of file picker
+    showUploadView.value = true;
+  };
+
+  const closeUploadView = () => {
+    showUploadView.value = false;
   };
 
   const handleSearchChat = () => {
@@ -473,5 +476,18 @@
   :deep(.account-menu .v-list-item:hover .v-icon) {
     opacity: 1 !important;
     filter: brightness(1.1) saturate(1.3) !important;
+  }
+
+  /* Upload View Container */
+  .upload-view-container {
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .chat-view-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 </style>

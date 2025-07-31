@@ -29,3 +29,30 @@ export interface ChatBotRequest {
   message: string;
   conversation_history?: Message[];
 }
+
+export interface UploadedFile {
+  id: string;
+  name: string;
+  originalName: string;
+  size: number;
+  type: string;
+  authority: Authority;
+  description?: string;
+  uploadedAt: Date | string;
+  uploadedBy: string;
+}
+
+export interface UploadFileRequest {
+  file: File;
+  authority: Authority;
+  description?: string;
+}
+
+export interface UploadFileResponse {
+  id: string;
+  name: string;
+  size: number;
+  uploadedAt: string;
+  success: boolean;
+  message?: string;
+}
