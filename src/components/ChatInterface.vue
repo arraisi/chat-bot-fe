@@ -120,7 +120,7 @@
           <!-- Chat Messages - Scrollable -->
           <div class="chat-messages-container">
             <v-container fluid class="pa-0 h-100">
-              <div class="chat-messages pa-4">
+              <div class="chat-messages">
                 <!-- Empty State -->
                 <div v-if="messages.length === 0" class="empty-state">
                   <div class="text-center">
@@ -302,8 +302,8 @@
   .chat-main-content {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    padding-top: 64px; /* Account for app bar height */
+    height: calc(100vh - 64px); /* Subtract app bar height from total height */
+    margin-top: 64px; /* Push content below app bar */
   }
 
   .chat-messages-container {
@@ -312,6 +312,7 @@
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--v-theme-outline)) transparent;
     background-color: #f5f5f5;
+    position: relative;
   }
 
   .chat-messages-container::-webkit-scrollbar {
@@ -335,7 +336,8 @@
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
-    min-height: calc(100vh - 200px); /* Ensure enough space for scrolling */
+    /* Proper padding for better spacing */
+    padding: 20px;
   }
 
   .empty-state {
@@ -343,13 +345,18 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 60vh;
+    height: calc(100vh - 200px - 64px); /* Account for app bar in empty state */
     text-align: center;
     padding: 2rem;
   }
 
   .messages-list {
     padding-bottom: 20px;
+    padding-top: 20px; /* Add top padding to prevent messages from being too close to app bar */
+    margin-top: 50px; /* Additional margin for extra spacing */
+    /* Ensure messages start from the top */
+    display: flex;
+    flex-direction: column;
   }
 
   .chat-input-container {
@@ -364,7 +371,8 @@
   /* Mobile responsiveness */
   @media (max-width: 768px) {
     .chat-main-content {
-      padding-top: 56px; /* Smaller app bar on mobile */
+      margin-top: 56px; /* Smaller app bar on mobile */
+      height: calc(100vh - 56px);
     }
 
     .chat-messages {
@@ -372,7 +380,7 @@
     }
 
     .empty-state {
-      min-height: 50vh;
+      height: calc(100vh - 200px - 56px); /* Account for smaller app bar on mobile */
       padding: 1rem;
     }
   }
