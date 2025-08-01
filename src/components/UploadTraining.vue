@@ -24,8 +24,16 @@
             </v-card-title>
 
             <v-card-text>
-              <!-- Authority Selection (for ALL authority users) -->
-              <div v-if="userAuthority === 'ALL'" class="mb-6">
+              <!-- Authority Selection (for ALL, ADMIN, SDM, HUKUM authority users) -->
+              <div
+                v-if="
+                  userAuthority === 'ALL' ||
+                  userAuthority === 'ADMIN' ||
+                  userAuthority === 'SDM' ||
+                  userAuthority === 'HUKUM'
+                "
+                class="mb-6"
+              >
                 <v-select
                   v-model="selectedTargetAuthority"
                   :items="targetAuthorityOptions"
@@ -56,7 +64,7 @@
                   ref="fileInput"
                   type="file"
                   multiple
-                  accept=".pdf,.doc,.docx,.txt,.md,.xlsx,.xls"
+                  accept=".pdf,.doc,.docx,.txt,.md,.xlsx,.xls,.zip"
                   @change="handleFileSelect"
                   style="display: none"
                 />
@@ -65,7 +73,7 @@
                   <v-icon size="64" color="primary" class="mb-4">mdi-cloud-upload-outline</v-icon>
                   <h3 class="drop-zone-title">Drop files here or click to browse</h3>
                   <p class="drop-zone-subtitle">
-                    Supported formats: PDF, DOC, DOCX, TXT, MD, XLSX, XLS<br />
+                    Supported formats: PDF, DOC, DOCX, TXT, MD, XLSX, XLS, ZIP<br />
                     Maximum file size: 10MB per file
                   </p>
                 </div>
@@ -325,32 +333,47 @@
     description: '',
   });
 
-  // Authority options
-  const targetAuthorityOptions = [
-    { code: 'SDM', name: 'SDM - Sumber Daya Manusia' },
-    { code: 'HUKUM', name: 'Hukum - Legal Department' },
-    { code: 'ADMIN', name: 'Administrator' },
-  ];
+  // Authority options based on user authority
+  const targetAuthorityOptions = computed(() => {
+    if (userAuthority.value === 'ALL' || userAuthority.value === 'ADMIN') {
+      return [
+        { code: 'SDM', name: 'SDM - Sumber Daya Manusia' },
+        { code: 'HUKUM', name: 'Hukum - Legal Department' },
+      ];
+    } else if (userAuthority.value === 'SDM') {
+      return [{ code: 'SDM', name: 'SDM - Sumber Daya Manusia' }];
+    } else if (userAuthority.value === 'HUKUM') {
+      return [{ code: 'HUKUM', name: 'Hukum - Legal Department' }];
+    }
+    return [];
+  });
 
-  const filterAuthorityOptions = [{ code: 'ALL', name: 'All Authorities' }, ...targetAuthorityOptions];
+  const filterAuthorityOptions = computed(() => [
+    { code: 'ALL', name: 'All Authorities' },
+    ...targetAuthorityOptions.value,
+  ]);
 
   // Computed properties
   const currentAuthorityName = computed(() => {
     if (userAuthority.value === 'ALL') {
       return 'All Authorities';
     }
-    const authority = targetAuthorityOptions.find(a => a.code === userAuthority.value);
+    const authority = targetAuthorityOptions.value.find(a => a.code === userAuthority.value);
     return authority?.name || userAuthority.value;
   });
 
   const canUpload = computed(() => {
     const hasFiles = selectedFiles.value.length > 0;
-    const hasValidAuthority = userAuthority.value !== 'ALL' || selectedTargetAuthority.value;
+    const hasValidAuthority =
+      userAuthority.value === 'ALL' || userAuthority.value === 'ADMIN' ? selectedTargetAuthority.value : true; // For SDM and HUKUM users, authority is automatically set
     return hasFiles && hasValidAuthority && !uploading.value;
   });
 
   const effectiveAuthority = computed(() => {
-    return userAuthority.value === 'ALL' ? selectedTargetAuthority.value : userAuthority.value;
+    if (userAuthority.value === 'ALL' || userAuthority.value === 'ADMIN') {
+      return selectedTargetAuthority.value;
+    }
+    return userAuthority.value; // For SDM and HUKUM users, use their own authority
   });
 
   // Methods
@@ -384,11 +407,12 @@
         'text/markdown',
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/zip',
       ];
 
       const maxSize = 10 * 1024 * 1024; // 10MB
 
-      if (!validTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|txt|md|xlsx|xls)$/i)) {
+      if (!validTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|txt|md|xlsx|xls|zip)$/i)) {
         showError(`File ${file.name} has an unsupported format.`);
         return false;
       }
@@ -418,7 +442,7 @@
     clearErrors();
     let isValid = true;
 
-    if (userAuthority.value === 'ALL' && !selectedTargetAuthority.value) {
+    if ((userAuthority.value === 'ALL' || userAuthority.value === 'ADMIN') && !selectedTargetAuthority.value) {
       errors.value.targetAuthority = 'Please select a target authority';
       isValid = false;
     }
@@ -513,6 +537,7 @@
     if (fileType.includes('word') || fileType.includes('document')) return 'mdi-file-word-box';
     if (fileType.includes('excel') || fileType.includes('spreadsheet')) return 'mdi-file-excel-box';
     if (fileType.includes('text') || fileType.includes('markdown')) return 'mdi-file-document-outline';
+    if (fileType.includes('zip')) return 'mdi-folder-zip';
     return 'mdi-file-outline';
   };
 
@@ -521,6 +546,7 @@
     if (fileType.includes('word') || fileType.includes('document')) return 'blue';
     if (fileType.includes('excel') || fileType.includes('spreadsheet')) return 'green';
     if (fileType.includes('text') || fileType.includes('markdown')) return 'grey';
+    if (fileType.includes('zip')) return 'orange';
     return 'grey';
   };
 
@@ -556,8 +582,8 @@
 
   // Initialize
   onMounted(() => {
-    // Set default target authority for non-ALL users
-    if (userAuthority.value !== 'ALL') {
+    // Set default target authority for SDM and HUKUM users
+    if (userAuthority.value === 'SDM' || userAuthority.value === 'HUKUM') {
       selectedTargetAuthority.value = userAuthority.value;
     }
 
@@ -612,21 +638,27 @@
   .files-list-card {
     height: fit-content;
     background-color: #ffffff;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
   }
 
   .upload-card:hover,
   .files-list-card:hover {
-    box-shadow: 0 4px 20px rgba(32, 40, 135, 0.1);
-    border-color: #d0d0d0;
+    box-shadow: 0 4px 20px rgba(32, 40, 135, 0.08);
+    border-color: #dee2e6;
   }
 
   .card-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: #202887;
+    color: #2c3e50;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    margin: -1rem -1rem 1rem -1rem;
+    border-radius: 12px 12px 0 0;
+    border-bottom: 1px solid #e9ecef;
   }
 
   .file-drop-zone {
@@ -711,17 +743,23 @@
     box-shadow: 0 2px 8px rgba(32, 40, 135, 0.1);
   }
 
+  /* Light Mode Uploaded Files List Styling */
   .uploaded-file-item {
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #e9ecef;
     padding: 1rem 0;
     transition: all 0.2s ease;
+    background-color: #ffffff;
+    border-radius: 8px;
+    margin: 2px 0;
   }
 
   .uploaded-file-item:hover {
-    background-color: #f8f9ff;
+    background-color: #f8f9fa;
     border-radius: 8px;
     padding: 1rem;
-    margin: 0 -1rem;
+    margin: 2px -0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #dee2e6;
   }
 
   .uploaded-file-item:last-child {
@@ -734,27 +772,55 @@
 
   .file-name {
     font-weight: 600;
-    color: #333;
+    color: #2c3e50;
+    font-size: 0.95rem;
   }
 
   .file-details {
-    color: #666;
+    color: #6c757d;
     font-size: 0.75rem;
+    font-weight: 500;
   }
 
   .file-date {
-    color: #999;
+    color: #adb5bd;
     font-size: 0.7rem;
+    font-weight: 400;
   }
 
   .file-description {
-    background: #f0f7ff;
-    border: 1px solid #e3f2fd;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
     padding: 0.5rem;
     border-radius: 6px;
     font-size: 0.75rem;
-    color: #555;
+    color: #495057;
     font-style: italic;
+    margin-top: 0.25rem;
+  }
+
+  /* Light Mode V-List Styling */
+  :deep(.v-list) {
+    background-color: #ffffff !important;
+    border-radius: 8px !important;
+  }
+
+  :deep(.v-list-item) {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+  }
+
+  :deep(.v-list-item:hover) {
+    background-color: #f8f9fa !important;
+  }
+
+  :deep(.v-list-item-title) {
+    color: #2c3e50 !important;
+    font-weight: 500 !important;
+  }
+
+  :deep(.v-list-item-subtitle) {
+    color: #6c757d !important;
   }
 
   .upload-actions {
@@ -798,6 +864,137 @@
     padding: 0.5rem;
     border-radius: 6px;
     margin: 0.5rem 0;
+  }
+
+  /* Light Mode Theme for Select Components */
+  :deep(.v-select) {
+    background-color: #ffffff !important;
+  }
+
+  :deep(.v-select .v-field) {
+    background-color: #ffffff !important;
+    border-radius: 8px !important;
+  }
+
+  :deep(.v-select .v-field__input) {
+    color: #2c3e50 !important;
+    font-weight: 500 !important;
+  }
+
+  :deep(.v-select .v-field__append-inner) {
+    color: #202887 !important;
+  }
+
+  :deep(.v-select .v-field__prepend-inner) {
+    color: #202887 !important;
+  }
+
+  :deep(.v-select .v-field__label) {
+    color: #6c757d !important;
+    font-weight: 500 !important;
+  }
+
+  :deep(.v-select .v-field--focused .v-field__label) {
+    color: #202887 !important;
+    font-weight: 600 !important;
+  }
+
+  :deep(.v-select .v-field__placeholder) {
+    color: #adb5bd !important;
+  }
+
+  :deep(.v-select .v-field__outline) {
+    color: #dee2e6 !important;
+  }
+
+  :deep(.v-select .v-field--focused .v-field__outline) {
+    color: #202887 !important;
+  }
+
+  :deep(.v-select .v-field--variant-outlined .v-field__outline__start) {
+    border-color: #dee2e6 !important;
+  }
+
+  :deep(.v-select .v-field--variant-outlined .v-field__outline__end) {
+    border-color: #dee2e6 !important;
+  }
+
+  :deep(.v-select .v-field--variant-outlined .v-field__outline__notch) {
+    border-color: #dee2e6 !important;
+  }
+
+  :deep(.v-select .v-field--focused .v-field__outline__start) {
+    border-color: #202887 !important;
+  }
+
+  :deep(.v-select .v-field--focused .v-field__outline__end) {
+    border-color: #202887 !important;
+  }
+
+  :deep(.v-select .v-field--focused .v-field__outline__notch) {
+    border-color: #202887 !important;
+  }
+
+  /* Light Mode Dropdown Menu Styling */
+  :deep(.v-select .v-list) {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  :deep(.v-select .v-list-item) {
+    color: #2c3e50 !important;
+    background-color: #ffffff !important;
+    border-radius: 4px !important;
+    margin: 2px 4px !important;
+  }
+
+  :deep(.v-select .v-list-item:hover) {
+    background-color: #f8f9fa !important;
+    color: #202887 !important;
+  }
+
+  :deep(.v-select .v-list-item--active) {
+    background-color: #e3f2fd !important;
+    color: #202887 !important;
+    font-weight: 600 !important;
+  }
+
+  :deep(.v-select .v-list-item-title) {
+    color: inherit !important;
+    font-weight: 500 !important;
+  }
+
+  :deep(.v-select .v-list-item-subtitle) {
+    color: #6c757d !important;
+  }
+
+  /* Light Mode Menu Overlay Styling */
+  :deep(.v-overlay__content .v-list) {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  :deep(.v-overlay__content .v-list-item) {
+    color: #2c3e50 !important;
+    background-color: #ffffff !important;
+    border-radius: 4px !important;
+    margin: 2px 4px !important;
+  }
+
+  :deep(.v-overlay__content .v-list-item:hover) {
+    background-color: #f8f9fa !important;
+    color: #202887 !important;
+  }
+
+  :deep(.v-overlay__content .v-list-item--active) {
+    background-color: #e3f2fd !important;
+    color: #202887 !important;
+    font-weight: 600 !important;
   }
 
   /* Responsive adjustments */
