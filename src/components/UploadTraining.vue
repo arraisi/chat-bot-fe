@@ -21,7 +21,7 @@
             <v-card-title class="card-title">
               <div class="d-flex align-center justify-space-between w-100">
                 <div class="d-flex align-center">
-                  <v-icon start color="success">mdi-file-check</v-icon>
+                  <v-icon start color="success">mdi-file-document-multiple</v-icon>
                   Uploaded Files
                 </div>
                 <v-btn color="primary" size="small" @click="showUploadModal = true">
@@ -72,6 +72,10 @@
                       <v-icon size="48" color="grey" class="mb-2">mdi-file-outline</v-icon>
                       <p class="text-grey">No files uploaded yet</p>
                     </div>
+                  </template>
+
+                  <template #item.id="{ item }">
+                    <span style="color: #000000; font-weight: 500">{{ item.id }}</span>
                   </template>
 
                   <template #item.filename="{ item }">
@@ -397,11 +401,11 @@
 
   // Data table headers
   const tableHeaders = ref([
-    { title: 'ID', key: 'id', width: '80px' },
-    { title: 'Filename', key: 'filename', width: '250px' },
-    { title: 'Authority', key: 'authority', width: '120px' },
-    { title: 'Category', key: 'category', width: '150px' },
-    { title: 'Actions', key: 'actions', width: '80px', sortable: false },
+    { title: 'ID', key: 'id', width: '80px', maxWidth: '80px', sortable: false },
+    { title: 'Filename', key: 'filename', width: '250px', sortable: false },
+    { title: 'Authority', key: 'authority', width: '120px', sortable: false },
+    { title: 'Category', key: 'category', width: '150px', sortable: false },
+    { title: 'Actions', key: 'actions', width: '80px', maxWidth: '80px', sortable: false },
   ]);
 
   // Computed properties
@@ -1381,7 +1385,7 @@
     color: #2c3e50 !important;
     font-weight: 600 !important;
     border-bottom: 2px solid #dee2e6 !important;
-    font-size: 0.875rem !important;
+    font-size: 1rem !important;
     letter-spacing: 0.5px !important;
     text-transform: uppercase !important;
   }
@@ -1401,7 +1405,7 @@
     color: #2c3e50 !important;
     font-weight: 600 !important;
     border-bottom: 2px solid #dee2e6 !important;
-    font-size: 0.875rem !important;
+    font-size: 1rem !important;
     letter-spacing: 0.5px !important;
     text-transform: uppercase !important;
   }
@@ -1411,7 +1415,7 @@
     color: #2c3e50 !important;
     font-weight: 600 !important;
     border-bottom: 2px solid #dee2e6 !important;
-    font-size: 0.875rem !important;
+    font-size: 1rem !important;
     letter-spacing: 0.5px !important;
     text-transform: uppercase !important;
   }
