@@ -142,8 +142,9 @@
                 <!-- Empty State -->
                 <div v-if="messages.length === 0" class="empty-state">
                   <div class="text-center">
-                    <v-icon size="80" color="primary" class="mb-4">mdi-robot-excited</v-icon>
-                    <h2 class="mb-2 text-h4">Welcome to AIVA</h2>
+                    <img src="../assets/aiva_color.png" alt="AIVA" class="aiva-logo mb-4" />
+                    <!-- <v-icon size="80" color="primary" class="mb-4 mt-8">mdi-robot-excited</v-icon> -->
+                    <!-- <h2 class="mb-2 text-h4">Welcome to AIVA</h2> -->
                     <p class="text-body-1 text-medium-emphasis mb-4">
                       AI Virtual Assistant untuk informasi Peruri. Pilih kategori dan mulai percakapan!
                     </p>
@@ -193,10 +194,10 @@
                       </div>
                     </div>
 
-                    <v-btn v-if="!selectedSuggestionCategory" color="primary" variant="tonal" @click="createNewSession">
+                    <!-- <v-btn v-if="!selectedSuggestionCategory" color="primary" variant="tonal" @click="createNewSession">
                       <v-icon start>mdi-plus</v-icon>
                       Start New Chat
-                    </v-btn>
+                    </v-btn> -->
                   </div>
                 </div>
 

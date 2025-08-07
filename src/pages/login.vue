@@ -2,7 +2,8 @@
   <div class="login-container">
     <div class="login-content">
       <div class="authority-selection">
-        <h1 class="welcome-title">AIVA CHAT BOT</h1>
+        <!-- <h1 class="welcome-title">AIVA CHAT BOT</h1> -->
+        <img src="../assets/aiva_color.png" alt="AIVA Logo" class="aiva-logo mb-4" />
         <p class="welcome-subtitle">Silahkan pilih otoritas untuk mengakses aplikasi</p>
 
         <v-select
