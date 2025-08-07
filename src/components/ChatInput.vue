@@ -2,16 +2,53 @@
   <div class="chat-input-container">
     <v-form @submit.prevent="handleSubmit">
       <div class="input-wrapper">
+        <!-- Category Selection Dropdown -->
+        <div class="category-selector">
+          <v-select
+            v-model="selectedCategory"
+            :items="availableCategories"
+            item-title="label"
+            item-value="value"
+            placeholder="Select Category"
+            variant="plain"
+            density="compact"
+            hide-details
+            class="category-select"
+          >
+            <template #selection="{ item }">
+              <div v-if="item.raw" class="category-chip">
+                <v-icon size="14" class="me-1">{{ item.raw.icon }}</v-icon>
+                {{ item.raw.label }}
+              </div>
+              <div v-else class="category-chip category-chip-placeholder">
+                <v-icon size="14" class="me-1">mdi-tag-outline</v-icon>
+                Category
+              </div>
+            </template>
+            <template #item="{ item, props: itemProps }">
+              <v-list-item v-bind="itemProps" class="category-item">
+                <template #prepend>
+                  <v-icon size="16">{{ item.raw.icon }}</v-icon>
+                </template>
+                <v-list-item-subtitle>{{ item.raw.description }}</v-list-item-subtitle>
+              </v-list-item>
+            </template>
+          </v-select>
+        </div>
+
+        <v-divider vertical class="category-divider" />
+
         <v-textarea
           v-model="inputMessage"
           auto-grow
           class="flex-grow-1 chat-textarea"
           hide-details
           max-rows="3"
-          placeholder="Message PeruriBot..."
+          :placeholder="placeholderText"
           rows="1"
           variant="outlined"
           density="compact"
+          :disabled="!selectedCategory"
           @keydown.enter.exact.prevent="handleSubmit"
           @keydown.enter.shift.exact="addNewLine"
         />
@@ -52,29 +89,186 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue';
+  import { computed, ref, watch } from 'vue';
+  import type { Authority } from '../types/chat';
 
   interface Props {
     isLoading?: boolean;
     error?: string | null;
+    userAuthority?: Authority | null;
   }
 
   interface Emits {
-    'send-message': [message: string];
+    'send-message': [message: string, category?: string];
     'voice-input': [];
+  }
+
+  interface CategoryOption {
+    value: string;
+    label: string;
+    description: string;
+    icon: string;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     isLoading: false,
     error: null,
+    userAuthority: null,
   });
 
   const emit = defineEmits<Emits>();
 
   const inputMessage = ref('');
+  const selectedCategory = ref<string>('');
+
+  // Define categories based on user authority
+  const getCategoriesByAuthority = (authority: Authority | null): CategoryOption[] => {
+    switch (authority) {
+      case 'HUKUM':
+        return [
+          {
+            value: 'code-of-conduct',
+            label: 'Code of Conduct',
+            description: 'Legal guidelines and ethical standards',
+            icon: 'mdi-gavel',
+          },
+          {
+            value: 'compliance',
+            label: 'Compliance',
+            description: 'Regulatory compliance matters',
+            icon: 'mdi-shield-check',
+          },
+          {
+            value: 'contracts',
+            label: 'Contracts',
+            description: 'Contract-related inquiries',
+            icon: 'mdi-file-document',
+          },
+          {
+            value: 'legal-policies',
+            label: 'Legal Policies',
+            description: 'Company legal policies',
+            icon: 'mdi-scale-balance',
+          },
+        ];
+      case 'SDM':
+        return [
+          {
+            value: 'hr-policies',
+            label: 'HR Policies',
+            description: 'Human resources policies and procedures',
+            icon: 'mdi-account-group',
+          },
+          {
+            value: 'employee-handbook',
+            label: 'Employee Handbook',
+            description: 'Employee guidelines and benefits',
+            icon: 'mdi-book-open',
+          },
+          {
+            value: 'performance',
+            label: 'Performance',
+            description: 'Performance evaluation and management',
+            icon: 'mdi-chart-line',
+          },
+          {
+            value: 'recruitment',
+            label: 'Recruitment',
+            description: 'Hiring and recruitment processes',
+            icon: 'mdi-account-plus',
+          },
+        ];
+      case 'ADMIN':
+        return [
+          {
+            value: 'system-admin',
+            label: 'System Administration',
+            description: 'System management and configuration',
+            icon: 'mdi-cog',
+          },
+          {
+            value: 'user-management',
+            label: 'User Management',
+            description: 'User accounts and permissions',
+            icon: 'mdi-account-settings',
+          },
+          {
+            value: 'security',
+            label: 'Security',
+            description: 'Security protocols and measures',
+            icon: 'mdi-security',
+          },
+          {
+            value: 'maintenance',
+            label: 'Maintenance',
+            description: 'System maintenance and updates',
+            icon: 'mdi-wrench',
+          },
+        ];
+      case 'ALL':
+        return [
+          {
+            value: 'general',
+            label: 'General',
+            description: 'General company information',
+            icon: 'mdi-information',
+          },
+          {
+            value: 'procedures',
+            label: 'Procedures',
+            description: 'Standard operating procedures',
+            icon: 'mdi-clipboard-list',
+          },
+          {
+            value: 'announcements',
+            label: 'Announcements',
+            description: 'Company announcements and news',
+            icon: 'mdi-bullhorn',
+          },
+          {
+            value: 'resources',
+            label: 'Resources',
+            description: 'Company resources and tools',
+            icon: 'mdi-folder',
+          },
+        ];
+      default:
+        return [
+          {
+            value: 'general',
+            label: 'General',
+            description: 'General inquiries',
+            icon: 'mdi-help-circle',
+          },
+        ];
+    }
+  };
+
+  const availableCategories = computed(() => getCategoriesByAuthority(props.userAuthority));
+
+  // Clear selected category when authority changes (categories change)
+  watch(
+    availableCategories,
+    (newCategories, oldCategories) => {
+      // Clear the selected category when categories change (authority change)
+      if (oldCategories && newCategories !== oldCategories) {
+        selectedCategory.value = '';
+      }
+    },
+    { immediate: false }
+  );
+
+  const placeholderText = computed(() => {
+    if (!selectedCategory.value) {
+      return 'Please select the category';
+    }
+    const categoryLabel =
+      availableCategories.value.find(cat => cat.value === selectedCategory.value)?.label || 'PeruriBot';
+    return `Ask about ${categoryLabel}...`;
+  });
 
   const canSend = computed(() => {
-    return inputMessage.value.trim().length > 0 && !props.isLoading;
+    return inputMessage.value.trim().length > 0 && !props.isLoading && selectedCategory.value;
   });
 
   const handleSubmit = () => {
@@ -82,7 +276,7 @@
 
     const message = inputMessage.value.trim();
     if (message) {
-      emit('send-message', message);
+      emit('send-message', message, selectedCategory.value);
       inputMessage.value = '';
     }
   };
@@ -112,14 +306,112 @@
     background: white;
     border-radius: 20px;
     border: 1px solid #e0e0e0;
-    padding: 2px;
+    padding: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     min-height: 48px;
+    gap: 0;
   }
 
   .input-wrapper:focus-within {
     border-color: #202887;
     box-shadow: 0 2px 12px rgba(32, 40, 135, 0.15);
+  }
+
+  /* Category Selector Styles */
+  .category-selector {
+    min-width: 120px;
+    max-width: 160px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+  }
+
+  .category-select :deep(.v-field) {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    min-height: auto !important;
+    padding: 0 !important;
+  }
+
+  .category-select :deep(.v-field__input) {
+    padding: 0 !important;
+    min-height: auto !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #202887 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .category-select :deep(.v-field__append-inner) {
+    padding: 0 !important;
+    margin-left: 4px !important;
+    align-items: center !important;
+  }
+
+  .category-select :deep(.v-icon) {
+    font-size: 16px !important;
+    color: #666 !important;
+  }
+
+  /* Placeholder styling for category select */
+  .category-select :deep(.v-field__input input::placeholder) {
+    color: #999 !important;
+    opacity: 1 !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+  }
+
+  .category-select :deep(.v-field__input .v-field__placeholder) {
+    color: #999 !important;
+    opacity: 1 !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+  }
+
+  .category-chip {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: #202887;
+    line-height: 1;
+  }
+
+  .category-chip-placeholder {
+    color: #999 !important;
+    font-weight: 400 !important;
+  }
+
+  .category-chip-placeholder .v-icon {
+    color: #999 !important;
+  }
+
+  .category-divider {
+    height: 32px;
+    margin: 0 8px;
+    opacity: 0.3;
+    align-self: center;
+  }
+
+  /* Category dropdown items */
+  :deep(.category-item) {
+    min-height: 56px !important;
+  }
+
+  :deep(.category-item .v-list-item-title) {
+    font-weight: 500 !important;
+    color: #1a1a1a !important;
+  }
+
+  :deep(.category-item .v-list-item-subtitle) {
+    font-size: 12px !important;
+    color: #666 !important;
+  }
+
+  :deep(.category-item:hover) {
+    background-color: rgba(32, 40, 135, 0.05) !important;
   }
 
   .chat-textarea :deep(.v-field) {
@@ -211,6 +503,18 @@
     .input-wrapper {
       border-radius: 18px;
       min-height: 44px;
+      padding: 2px;
+    }
+
+    .category-selector {
+      min-width: 100px;
+      max-width: 140px;
+      padding: 6px 8px;
+    }
+
+    .category-divider {
+      height: 28px;
+      margin: 0 6px;
     }
 
     .chat-textarea :deep(.v-field__input) {

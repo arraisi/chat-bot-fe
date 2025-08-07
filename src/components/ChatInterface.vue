@@ -5,19 +5,37 @@
       <!-- Sidebar Toggle Button -->
       <v-app-bar-nav-icon color="black" @click="sidebarOpen = !sidebarOpen" />
 
-      <!-- App Bar Title -->
+      <!-- App Bar Title with Authority Selector -->
       <v-toolbar-title class="d-flex align-center">
-        <div class="d-flex align-center">
-          <v-avatar size="32" class="me-2" color="primary">
-            <v-icon color="white">mdi-robot</v-icon>
-          </v-avatar>
-          <div>
-            <div class="font-weight-medium text-black">{{ currentSession?.title || 'Peruri Bot' }}</div>
-            <div class="text-caption text-black" style="opacity: 0.7" v-if="currentUser && userAuthority">
-              Welcome, {{ currentUser }} ({{ authorityDisplayName }})
+        <!-- Authority Selector Dropdown -->
+        <v-select
+          v-model="selectedAuthority"
+          :items="filteredAuthorities"
+          item-title="label"
+          item-value="value"
+          variant="plain"
+          density="compact"
+          hide-details
+          class="authority-select mt-1"
+          :disabled="isAuthorityChangeDisabled"
+          @update:model-value="handleAuthorityChange"
+        >
+          <template #selection="{ item }">
+            <div class="authority-chip">
+              <v-icon size="16" class="me-2">{{ item.raw.icon }}</v-icon>
+              <span class="authority-label">{{ item.raw.label }}</span>
             </div>
-          </div>
-        </div>
+          </template>
+          <template #item="{ item, props: itemProps }">
+            <v-list-item v-bind="itemProps" class="authority-item">
+              <template #prepend>
+                <v-icon size="16">{{ item.raw.icon }}</v-icon>
+              </template>
+              <!-- <v-list-item-title>{{ item.raw.label }}</v-list-item-title> -->
+              <v-list-item-subtitle>{{ item.raw.description }}</v-list-item-subtitle>
+            </v-list-item>
+          </template>
+        </v-select>
       </v-toolbar-title>
 
       <v-spacer />
@@ -150,7 +168,12 @@
           <!-- Chat Input - Fixed at bottom -->
           <div class="chat-input-container">
             <v-container fluid class="pa-4">
-              <ChatInput :error="error" :is-loading="isLoading" @send-message="handleSendMessage" />
+              <ChatInput
+                :error="error"
+                :is-loading="isLoading"
+                :user-authority="selectedAuthority"
+                @send-message="handleSendMessage"
+              />
             </v-container>
           </div>
         </div>
@@ -160,10 +183,11 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue';
+  import { computed, nextTick, onMounted, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { useAuth } from '../composables/useAuth';
   import { useChat } from '../composables/useChat';
+  import type { Authority } from '../types/chat';
   import UploadTraining from './UploadTraining.vue';
 
   const {
@@ -180,24 +204,94 @@
     initialize,
   } = useChat();
 
-  const { currentUser, userAuthority, logout } = useAuth();
+  const { currentUser, userAuthority, logout, setAuthorityAndAuthenticate } = useAuth();
   const router = useRouter();
 
-  // Authority display mapping
-  const authorityDisplayName = computed(() => {
-    switch (userAuthority.value) {
-      case 'ALL':
-        return 'Semua Akses';
-      case 'SDM':
-        return 'SDM';
-      case 'HUKUM':
-        return 'Hukum';
-      case 'ADMIN':
-        return 'Administrator';
-      default:
-        return 'Unknown';
+  // Authority options for dropdown
+  interface AuthorityOption {
+    value: Authority;
+    label: string;
+    description: string;
+    icon: string;
+  }
+
+  const availableAuthorities: AuthorityOption[] = [
+    {
+      value: 'ALL',
+      label: 'Semua Akses',
+      description: 'Full access to all departments',
+      icon: 'mdi-shield-crown',
+    },
+    {
+      value: 'SDM',
+      label: 'SDM',
+      description: 'Human Resources department',
+      icon: 'mdi-account-group',
+    },
+    {
+      value: 'HUKUM',
+      label: 'Hukum',
+      description: 'Legal department',
+      icon: 'mdi-gavel',
+    },
+    {
+      value: 'ADMIN',
+      label: 'Administrator',
+      description: 'System administration',
+      icon: 'mdi-cog',
+    },
+  ];
+
+  // Filter authorities based on user's current authority
+  const filteredAuthorities = computed(() => {
+    const currentAuth = userAuthority.value;
+
+    // If user is ADMIN or ALL, show all authorities
+    if (currentAuth === 'ADMIN' || currentAuth === 'ALL') {
+      return availableAuthorities;
+    }
+
+    // If user is SDM or HUKUM, only show their own authority
+    if (currentAuth === 'SDM' || currentAuth === 'HUKUM') {
+      return availableAuthorities.filter(auth => auth.value === currentAuth);
+    }
+
+    // Default fallback - show all authorities
+    return availableAuthorities;
+  });
+
+  // Disable dropdown for SDM/HUKUM users since they can't change authority
+  const isAuthorityChangeDisabled = computed(() => {
+    const currentAuth = userAuthority.value;
+    return currentAuth === 'SDM' || currentAuth === 'HUKUM';
+  });
+
+  const selectedAuthority = ref<Authority>(userAuthority.value || 'ALL');
+  const isChangingAuthority = ref(false);
+
+  // Watch for changes in userAuthority from auth composable
+  watch(userAuthority, newAuthority => {
+    if (newAuthority && newAuthority !== selectedAuthority.value) {
+      selectedAuthority.value = newAuthority;
     }
   });
+
+  // Handle authority change - only affects categories, not actual user authority
+  const handleAuthorityChange = async (newAuthority: Authority) => {
+    const currentAuth = userAuthority.value;
+
+    // For SDM/HUKUM users, prevent any changes
+    if (currentAuth === 'SDM' || currentAuth === 'HUKUM') {
+      console.warn('SDM and HUKUM users cannot change their authority selection');
+      selectedAuthority.value = currentAuth;
+      return;
+    }
+
+    // For ADMIN/ALL users, just update the selection for category filtering
+    // Don't change the actual user authority - just the selection for chat input categories
+    selectedAuthority.value = newAuthority;
+    console.log(`Authority selection changed to: ${newAuthority} (for category filtering only)`);
+  };
 
   const messagesEnd = ref<HTMLElement>();
   const sidebarOpen = ref(true); // Sidebar open state
@@ -226,7 +320,12 @@
   );
 
   // Handle sending messages
-  const handleSendMessage = async (message: string) => {
+  const handleSendMessage = async (message: string, category?: string) => {
+    if (category) {
+      console.log(`Sending message in category: ${category}`);
+      // You can modify the message to include category context
+      // For example: const contextualMessage = `[Category: ${category}] ${message}`;
+    }
     await sendMessageMock(message); // Change to sendMessage when you have real API
     scrollToBottom();
   };
@@ -438,6 +537,82 @@
     border: 1px solid rgb(var(--v-theme-outline-variant));
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Authority Selector Styles */
+  .authority-select {
+    min-width: 160px;
+    max-width: 220px;
+  }
+
+  .authority-select :deep(.v-field) {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    min-height: auto !important;
+    padding: 0 !important;
+  }
+
+  .authority-select :deep(.v-field__input) {
+    padding: 8px 12px !important;
+    min-height: auto !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #1a1a1a !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .authority-select :deep(.v-field__append-inner) {
+    padding: 0 !important;
+    margin-left: 8px !important;
+    align-items: center !important;
+  }
+
+  .authority-select :deep(.v-icon) {
+    font-size: 18px !important;
+    color: #666 !important;
+  }
+
+  .authority-chip {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1;
+  }
+
+  .authority-chip .v-icon {
+    color: #202887 !important;
+  }
+
+  .authority-label {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  /* Authority dropdown items */
+  :deep(.authority-item) {
+    min-height: 48px !important;
+  }
+
+  :deep(.authority-item .v-list-item-title) {
+    font-weight: 500 !important;
+    color: #1a1a1a !important;
+  }
+
+  :deep(.authority-item .v-list-item-subtitle) {
+    font-size: 11px !important;
+    color: #666 !important;
+  }
+
+  :deep(.authority-item:hover) {
+    background-color: rgba(32, 40, 135, 0.05) !important;
+  }
+
+  :deep(.authority-item .v-icon) {
+    color: #202887 !important;
   }
 
   :deep(.account-menu .v-list-item) {
