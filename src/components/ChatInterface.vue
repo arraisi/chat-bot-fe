@@ -143,11 +143,57 @@
                 <div v-if="messages.length === 0" class="empty-state">
                   <div class="text-center">
                     <v-icon size="80" color="primary" class="mb-4">mdi-robot-excited</v-icon>
-                    <h2 class="mb-2 text-h4">Welcome to Peruri Chat Bot</h2>
+                    <h2 class="mb-2 text-h4">Welcome to AIVA</h2>
                     <p class="text-body-1 text-medium-emphasis mb-4">
-                      Start a conversation with our AI assistant. Ask questions, get help, or just chat!
+                      AI Virtual Assistant untuk informasi Peruri. Pilih kategori dan mulai percakapan!
                     </p>
-                    <v-btn color="primary" variant="tonal" @click="createNewSession">
+
+                    <!-- Category Selection -->
+                    <div v-if="!selectedSuggestionCategory" class="category-selection mb-6">
+                      <h3 class="text-h6 mb-4">Pilih Kategori untuk Melihat Pertanyaan Populer:</h3>
+                      <div class="category-grid">
+                        <v-card
+                          v-for="category in filteredCategories"
+                          :key="category.value"
+                          class="category-card"
+                          hover
+                          @click="selectSuggestionCategory(category)"
+                        >
+                          <v-card-text class="text-center pa-4">
+                            <v-icon :icon="category.icon" size="40" color="primary" class="mb-2" />
+                            <div class="category-title">{{ category.label }}</div>
+                            <div class="category-desc">{{ category.description }}</div>
+                          </v-card-text>
+                        </v-card>
+                      </div>
+                    </div>
+
+                    <!-- Suggestion Questions -->
+                    <div v-else class="suggestions-section">
+                      <div class="d-flex align-center justify-center mb-4">
+                        <v-btn icon size="small" variant="text" @click="selectedSuggestionCategory = null">
+                          <v-icon>mdi-arrow-left</v-icon>
+                        </v-btn>
+                        <h3 class="text-h6 mx-3">{{ selectedSuggestionCategory.label }}</h3>
+                      </div>
+
+                      <div class="suggestions-grid">
+                        <v-card
+                          v-for="(suggestion, index) in selectedSuggestionCategory.suggestions"
+                          :key="index"
+                          class="suggestion-card"
+                          hover
+                          @click="handleSuggestionClick(suggestion, selectedSuggestionCategory.value)"
+                        >
+                          <v-card-text class="pa-4">
+                            <div class="suggestion-text">{{ suggestion }}</div>
+                            <v-icon class="suggestion-icon" size="20">mdi-arrow-right</v-icon>
+                          </v-card-text>
+                        </v-card>
+                      </div>
+                    </div>
+
+                    <v-btn v-if="!selectedSuggestionCategory" color="primary" variant="tonal" @click="createNewSession">
                       <v-icon start>mdi-plus</v-icon>
                       Start New Chat
                     </v-btn>
@@ -297,6 +343,249 @@
   const sidebarOpen = ref(true); // Sidebar open state
   const accountMenuOpen = ref(false); // Account menu open state
   const showUploadView = ref(false); // Upload view state
+  const selectedSuggestionCategory = ref<any>(null); // Selected category for suggestions
+
+  // Interface for category options with suggestions
+  interface CategoryOption {
+    value: string;
+    label: string;
+    description: string;
+    icon: string;
+    suggestions?: string[];
+  }
+
+  // Define categories with suggestions (same as ChatInput.vue)
+  const getCategoriesWithSuggestions = (authority: Authority | null): CategoryOption[] => {
+    const codeOfConductSuggestions = [
+      'Bagaimana Peruri mengelola risiko benturan kepentingan dalam pengambilan keputusan strategis dan pengadaan barang/jasa?',
+      'Apa saja tanggung jawab pemimpin Peruri dalam membangun budaya kepatuhan terhadap Pedoman Etika Perilaku, dan bagaimana pelaksanaannya diukur?',
+      'Bagaimana pendekatan Peruri terhadap pelestarian lingkungan diintegrasikan dalam kebijakan operasional dan pengembangan jangka panjang perusahaan?',
+      'Dalam konteks hubungan dengan stakeholders, bagaimana Peruri memastikan prinsip fairness, transparansi, dan akuntabilitas diterapkan secara menyeluruh?',
+      'Apa strategi Peruri dalam menerapkan sistem Whistle Blowing agar tetap efektif, melindungi pelapor, dan menjaga integritas internal?',
+    ];
+
+    const corporateGovernanceSuggestions = [
+      'Apa tujuan utama penerapan prinsip-prinsip Good Corporate Governance (GCG) di PERURI?',
+      'Bagaimana prinsip transparansi diterapkan di PERURI?',
+      'Apa saja kriteria yang harus dipenuhi untuk menjadi anggota Direksi PERURI?',
+      'Jelaskan peran Dewan Pengawas dalam tata kelola PERURI.',
+      'Bagaimana sistem pengendalian internal diterapkan di PERURI?',
+    ];
+
+    const dataPerlindunganSuggestions = [
+      'Apa latar belakang disusunnya kebijakan Pelindungan Data Pribadi (PDP) di PERURI?',
+      'Bagaimana strategi pelindungan data pribadi diimplementasikan di lingkungan PERURI?',
+      'Siapa saja pihak-pihak yang termasuk dalam pengelolaan dan pemrosesan data pribadi di PERURI?',
+      'Apa saja prinsip utama dalam pemrosesan data pribadi menurut kebijakan ini?',
+      'Apa peran dan tanggung jawab Data Protection Officer (DPO) di PERURI?',
+    ];
+
+    const itGovernanceSuggestions = [
+      'Apa peran strategis IT Governance dalam mendukung prinsip Good Corporate Governance (GCG) di Peruri?',
+      'Bagaimana komitmen manajemen Peruri tercermin dalam kebijakan sistem manajemen tata kelola TI?',
+      'Mengapa prinsip segregasi tugas penting dalam struktur tata kelola TI Peruri?',
+      'Apa saja elemen penting dalam penyusunan Master Plan TI di Peruri?',
+      'Bagaimana Peruri menjamin keamanan informasi dalam implementasi teknologi informasi?',
+    ];
+
+    const financialPolicySuggestions = [
+      'Apa latar belakang disusunnya Financial Policy Manual dalam pengelolaan keuangan perusahaan?',
+      'Apa pendekatan yang digunakan dalam penyusunan Manual Kebijakan Keuangan ini?',
+      'Sebutkan prinsip-prinsip yang mendasari pengelolaan keuangan!',
+      'Bagaimana proses penyusunan RKAP dalam perusahaan?',
+      'Apa yang dimaksud dengan Zero Based Budgeting dalam konteks anggaran perusahaan?',
+    ];
+
+    const tjslSuggestions = [
+      'Apa yang dimaksud dengan Program TJSL BUMN?',
+      'Bagaimana definisi Badan Usaha Milik Negara?',
+      'Apa saja prinsip yang harus diterapkan dalam pelaksanaan Program TJSL?',
+      'Apa tujuan strategis dari Program TJSL sebagaimana dijelaskan dalam dokumen ini?',
+      'Siapakah yang termasuk dalam kategori Mitra Binaan dalam Program Pendanaan UMK?',
+    ];
+
+    const mspSuggestions = [
+      'Apa tujuan utama dari disusunnya dokumen Manual Marketing, Sales & Product ini?',
+      'Apa saja ruang lingkup yang diatur dalam buku panduan ini?',
+      'Bagaimana definisi dari pemasaran dalam konteks manual ini?',
+      'Apa perbedaan mendasar antara pemasaran dan penjualan menurut dokumen ini?',
+      "Bagaimana peran 'market intelligence' dalam pengambilan keputusan strategis pemasaran?",
+    ];
+
+    const riskManagementSuggestions = [
+      'Apa itu Taksonomi Risiko?',
+      'Apa yang dimaksud dengan Pemilik Risiko/Risk Owner?',
+      'Bagaimana cara menerapkan manajemen risiko yang efektif?',
+      'Bagaimana kebijakan BCMS (Business Continuity Management System) di Peruri?',
+      'Bagaimana cara atau pertimbangan dalam menetapkan konteks risiko?',
+    ];
+
+    const accountingSuggestions = [
+      'Bagaimana prosedur pengalihan anggaran?',
+      'Bagaimana prosedur atau mekanisme revisi anggaran Perusahaan?',
+      'Bagaimana proses untuk Realisasi Perencaan Produksi?',
+      'Bagaimana ketentuan atau metode Pengadaan Langsung?',
+      'Bagaimana alur penerimaan produk retur?',
+    ];
+
+    switch (authority) {
+      case 'HUKUM':
+        return [
+          {
+            value: 'code-of-conduct',
+            label: 'Code of Conduct',
+            description: 'Pedoman etika perilaku dan standar',
+            icon: 'mdi-gavel',
+            suggestions: codeOfConductSuggestions,
+          },
+          {
+            value: 'code-of-corporate-governance',
+            label: 'Code of Corporate Governance',
+            description: 'Prinsip tata kelola perusahaan yang baik',
+            icon: 'mdi-shield-check',
+            suggestions: corporateGovernanceSuggestions,
+          },
+          {
+            value: 'perlindungan-data-pribadi',
+            label: 'Perlindungan Data Pribadi',
+            description: 'Kebijakan pelindungan data pribadi',
+            icon: 'mdi-shield-account',
+            suggestions: dataPerlindunganSuggestions,
+          },
+          {
+            value: 'risk-management-compliance',
+            label: 'Risk Management and Compliance',
+            description: 'Manajemen risiko dan kepatuhan',
+            icon: 'mdi-security',
+            suggestions: riskManagementSuggestions,
+          },
+        ];
+      case 'SDM':
+        return [
+          {
+            value: 'manual-tjsl',
+            label: 'Manual TJSL',
+            description: 'Tanggung Jawab Sosial dan Lingkungan',
+            icon: 'mdi-hand-heart',
+            suggestions: tjslSuggestions,
+          },
+          {
+            value: 'manual-msp',
+            label: 'Manual MSP',
+            description: 'Marketing, Sales & Product manual',
+            icon: 'mdi-chart-line',
+            suggestions: mspSuggestions,
+          },
+        ];
+      case 'ADMIN':
+        return [
+          {
+            value: 'it-corporate-governance',
+            label: 'IT Corporate Governance',
+            description: 'Tata kelola teknologi informasi',
+            icon: 'mdi-server-security',
+            suggestions: itGovernanceSuggestions,
+          },
+          {
+            value: 'financial-policy-manual',
+            label: 'Financial Policy Manual',
+            description: 'Manual kebijakan keuangan',
+            icon: 'mdi-currency-usd',
+            suggestions: financialPolicySuggestions,
+          },
+          {
+            value: 'accounting-procedure',
+            label: 'Accounting and Procedure',
+            description: 'Prosedur akuntansi dan keuangan',
+            icon: 'mdi-calculator',
+            suggestions: accountingSuggestions,
+          },
+        ];
+      case 'ALL':
+        return [
+          {
+            value: 'code-of-conduct',
+            label: 'Code of Conduct',
+            description: 'Pedoman etika perilaku dan standar',
+            icon: 'mdi-gavel',
+            suggestions: codeOfConductSuggestions,
+          },
+          {
+            value: 'code-of-corporate-governance',
+            label: 'Code of Corporate Governance',
+            description: 'Prinsip tata kelola perusahaan yang baik',
+            icon: 'mdi-shield-check',
+            suggestions: corporateGovernanceSuggestions,
+          },
+          {
+            value: 'perlindungan-data-pribadi',
+            label: 'Perlindungan Data Pribadi',
+            description: 'Kebijakan pelindungan data pribadi',
+            icon: 'mdi-shield-account',
+            suggestions: dataPerlindunganSuggestions,
+          },
+          {
+            value: 'it-corporate-governance',
+            label: 'IT Corporate Governance',
+            description: 'Tata kelola teknologi informasi',
+            icon: 'mdi-server-security',
+            suggestions: itGovernanceSuggestions,
+          },
+          {
+            value: 'financial-policy-manual',
+            label: 'Financial Policy Manual',
+            description: 'Manual kebijakan keuangan',
+            icon: 'mdi-currency-usd',
+            suggestions: financialPolicySuggestions,
+          },
+          {
+            value: 'manual-tjsl',
+            label: 'Manual TJSL',
+            description: 'Tanggung Jawab Sosial dan Lingkungan',
+            icon: 'mdi-hand-heart',
+            suggestions: tjslSuggestions,
+          },
+          {
+            value: 'manual-msp',
+            label: 'Manual MSP',
+            description: 'Marketing, Sales & Product manual',
+            icon: 'mdi-chart-line',
+            suggestions: mspSuggestions,
+          },
+          {
+            value: 'risk-management-compliance',
+            label: 'Risk Management and Compliance',
+            description: 'Manajemen risiko dan kepatuhan',
+            icon: 'mdi-security',
+            suggestions: riskManagementSuggestions,
+          },
+          {
+            value: 'accounting-procedure',
+            label: 'Accounting and Procedure',
+            description: 'Prosedur akuntansi dan keuangan',
+            icon: 'mdi-calculator',
+            suggestions: accountingSuggestions,
+          },
+        ];
+      default:
+        return [
+          {
+            value: 'general',
+            label: 'General',
+            description: 'General inquiries',
+            icon: 'mdi-help-circle',
+            suggestions: [
+              'Apa informasi umum tentang Peruri?',
+              'Bagaimana cara menghubungi customer service?',
+              'Apa jam operasional Peruri?',
+            ],
+          },
+        ];
+    }
+  };
+
+  // Get filtered categories based on selected authority
+  const filteredCategories = computed(() => getCategoriesWithSuggestions(selectedAuthority.value));
 
   // Computed style for flexible app bar
   const appBarStyle = computed(() => ({
@@ -327,6 +616,22 @@
       // For example: const contextualMessage = `[Category: ${category}] ${message}`;
     }
     await sendMessageMock(message); // Change to sendMessage when you have real API
+    scrollToBottom();
+  };
+
+  // Handle suggestion category selection
+  const selectSuggestionCategory = (category: CategoryOption) => {
+    selectedSuggestionCategory.value = category;
+  };
+
+  // Handle suggestion question click
+  const handleSuggestionClick = async (suggestion: string, categoryValue: string) => {
+    // First set the category in the input
+    createNewSession();
+    // Wait for the next tick to ensure the session is created
+    await nextTick();
+    // Then send the suggestion as a message
+    await sendMessageMock(suggestion);
     scrollToBottom();
   };
 
@@ -447,6 +752,115 @@
     height: calc(100vh - 200px - 64px); /* Account for app bar in empty state */
     text-align: center;
     padding: 2rem;
+  }
+
+  /* Category Selection Styles */
+  .category-selection {
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .category-card {
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: white !important;
+  }
+
+  .category-card:hover {
+    border-color: #202887;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(32, 40, 135, 0.15);
+  }
+
+  .category-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .category-desc {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+  }
+
+  /* Suggestions Section Styles */
+  .suggestions-section {
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .suggestions-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .suggestion-card {
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: white !important;
+    position: relative;
+  }
+
+  .suggestion-card:hover {
+    border-color: #202887;
+    transform: translateX(8px);
+    box-shadow: 0 4px 15px rgba(32, 40, 135, 0.1);
+  }
+
+  .suggestion-text {
+    font-size: 14px;
+    color: #1a1a1a;
+    line-height: 1.5;
+    padding-right: 40px;
+    font-weight: 500;
+  }
+
+  .suggestion-icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    transition: all 0.3s ease;
+  }
+
+  .suggestion-card:hover .suggestion-icon {
+    color: #202887;
+    transform: translateY(-50%) translateX(4px);
+  }
+
+  /* Mobile responsiveness for suggestions */
+  @media (max-width: 768px) {
+    .category-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .category-card {
+      margin: 0;
+    }
+
+    .suggestion-text {
+      font-size: 13px;
+      padding-right: 35px;
+    }
+
+    .suggestion-icon {
+      right: 12px;
+    }
   }
 
   .messages-list {

@@ -108,6 +108,7 @@
     label: string;
     description: string;
     icon: string;
+    suggestions?: string[];
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -123,113 +124,215 @@
 
   // Define categories based on user authority
   const getCategoriesByAuthority = (authority: Authority | null): CategoryOption[] => {
+    const codeOfConductSuggestions = [
+      'Bagaimana Peruri mengelola risiko benturan kepentingan dalam pengambilan keputusan strategis dan pengadaan barang/jasa?',
+      'Apa saja tanggung jawab pemimpin Peruri dalam membangun budaya kepatuhan terhadap Pedoman Etika Perilaku, dan bagaimana pelaksanaannya diukur?',
+      'Bagaimana pendekatan Peruri terhadap pelestarian lingkungan diintegrasikan dalam kebijakan operasional dan pengembangan jangka panjang perusahaan?',
+      'Dalam konteks hubungan dengan stakeholders, bagaimana Peruri memastikan prinsip fairness, transparansi, dan akuntabilitas diterapkan secara menyeluruh?',
+      'Apa strategi Peruri dalam menerapkan sistem Whistle Blowing agar tetap efektif, melindungi pelapor, dan menjaga integritas internal?',
+    ];
+
+    const corporateGovernanceSuggestions = [
+      'Apa tujuan utama penerapan prinsip-prinsip Good Corporate Governance (GCG) di PERURI?',
+      'Bagaimana prinsip transparansi diterapkan di PERURI?',
+      'Apa saja kriteria yang harus dipenuhi untuk menjadi anggota Direksi PERURI?',
+      'Jelaskan peran Dewan Pengawas dalam tata kelola PERURI.',
+      'Bagaimana sistem pengendalian internal diterapkan di PERURI?',
+    ];
+
+    const dataPerlindunganSuggestions = [
+      'Apa latar belakang disusunnya kebijakan Pelindungan Data Pribadi (PDP) di PERURI?',
+      'Bagaimana strategi pelindungan data pribadi diimplementasikan di lingkungan PERURI?',
+      'Siapa saja pihak-pihak yang termasuk dalam pengelolaan dan pemrosesan data pribadi di PERURI?',
+      'Apa saja prinsip utama dalam pemrosesan data pribadi menurut kebijakan ini?',
+      'Apa peran dan tanggung jawab Data Protection Officer (DPO) di PERURI?',
+    ];
+
+    const itGovernanceSuggestions = [
+      'Apa peran strategis IT Governance dalam mendukung prinsip Good Corporate Governance (GCG) di Peruri?',
+      'Bagaimana komitmen manajemen Peruri tercermin dalam kebijakan sistem manajemen tata kelola TI?',
+      'Mengapa prinsip segregasi tugas penting dalam struktur tata kelola TI Peruri?',
+      'Apa saja elemen penting dalam penyusunan Master Plan TI di Peruri?',
+      'Bagaimana Peruri menjamin keamanan informasi dalam implementasi teknologi informasi?',
+    ];
+
+    const financialPolicySuggestions = [
+      'Apa latar belakang disusunnya Financial Policy Manual dalam pengelolaan keuangan perusahaan?',
+      'Apa pendekatan yang digunakan dalam penyusunan Manual Kebijakan Keuangan ini?',
+      'Sebutkan prinsip-prinsip yang mendasari pengelolaan keuangan!',
+      'Bagaimana proses penyusunan RKAP dalam perusahaan?',
+      'Apa yang dimaksud dengan Zero Based Budgeting dalam konteks anggaran perusahaan?',
+    ];
+
+    const tjslSuggestions = [
+      'Apa yang dimaksud dengan Program TJSL BUMN?',
+      'Bagaimana definisi Badan Usaha Milik Negara?',
+      'Apa saja prinsip yang harus diterapkan dalam pelaksanaan Program TJSL?',
+      'Apa tujuan strategis dari Program TJSL sebagaimana dijelaskan dalam dokumen ini?',
+      'Siapakah yang termasuk dalam kategori Mitra Binaan dalam Program Pendanaan UMK?',
+    ];
+
+    const mspSuggestions = [
+      'Apa tujuan utama dari disusunnya dokumen Manual Marketing, Sales & Product ini?',
+      'Apa saja ruang lingkup yang diatur dalam buku panduan ini?',
+      'Bagaimana definisi dari pemasaran dalam konteks manual ini?',
+      'Apa perbedaan mendasar antara pemasaran dan penjualan menurut dokumen ini?',
+      "Bagaimana peran 'market intelligence' dalam pengambilan keputusan strategis pemasaran?",
+    ];
+
+    const riskManagementSuggestions = [
+      'Apa itu Taksonomi Risiko?',
+      'Apa yang dimaksud dengan Pemilik Risiko/Risk Owner?',
+      'Bagaimana cara menerapkan manajemen risiko yang efektif?',
+      'Bagaimana kebijakan BCMS (Business Continuity Management System) di Peruri?',
+      'Bagaimana cara atau pertimbangan dalam menetapkan konteks risiko?',
+    ];
+
+    const accountingSuggestions = [
+      'Bagaimana prosedur pengalihan anggaran?',
+      'Bagaimana prosedur atau mekanisme revisi anggaran Perusahaan?',
+      'Bagaimana proses untuk Realisasi Perencaan Produksi?',
+      'Bagaimana ketentuan atau metode Pengadaan Langsung?',
+      'Bagaimana alur penerimaan produk retur?',
+    ];
+
     switch (authority) {
       case 'HUKUM':
         return [
           {
             value: 'code-of-conduct',
             label: 'Code of Conduct',
-            description: 'Legal guidelines and ethical standards',
+            description: 'Pedoman etika perilaku dan standar',
             icon: 'mdi-gavel',
+            suggestions: codeOfConductSuggestions,
           },
           {
-            value: 'compliance',
-            label: 'Compliance',
-            description: 'Regulatory compliance matters',
+            value: 'code-of-corporate-governance',
+            label: 'Code of Corporate Governance',
+            description: 'Prinsip tata kelola perusahaan yang baik',
             icon: 'mdi-shield-check',
+            suggestions: corporateGovernanceSuggestions,
           },
           {
-            value: 'contracts',
-            label: 'Contracts',
-            description: 'Contract-related inquiries',
-            icon: 'mdi-file-document',
+            value: 'perlindungan-data-pribadi',
+            label: 'Perlindungan Data Pribadi',
+            description: 'Kebijakan pelindungan data pribadi',
+            icon: 'mdi-shield-account',
+            suggestions: dataPerlindunganSuggestions,
           },
           {
-            value: 'legal-policies',
-            label: 'Legal Policies',
-            description: 'Company legal policies',
-            icon: 'mdi-scale-balance',
+            value: 'risk-management-compliance',
+            label: 'Risk Management and Compliance',
+            description: 'Manajemen risiko dan kepatuhan',
+            icon: 'mdi-security',
+            suggestions: riskManagementSuggestions,
           },
         ];
       case 'SDM':
         return [
           {
-            value: 'hr-policies',
-            label: 'HR Policies',
-            description: 'Human resources policies and procedures',
-            icon: 'mdi-account-group',
+            value: 'manual-tjsl',
+            label: 'Manual TJSL',
+            description: 'Tanggung Jawab Sosial dan Lingkungan',
+            icon: 'mdi-hand-heart',
+            suggestions: tjslSuggestions,
           },
           {
-            value: 'employee-handbook',
-            label: 'Employee Handbook',
-            description: 'Employee guidelines and benefits',
-            icon: 'mdi-book-open',
-          },
-          {
-            value: 'performance',
-            label: 'Performance',
-            description: 'Performance evaluation and management',
+            value: 'manual-msp',
+            label: 'Manual MSP',
+            description: 'Marketing, Sales & Product manual',
             icon: 'mdi-chart-line',
-          },
-          {
-            value: 'recruitment',
-            label: 'Recruitment',
-            description: 'Hiring and recruitment processes',
-            icon: 'mdi-account-plus',
+            suggestions: mspSuggestions,
           },
         ];
       case 'ADMIN':
         return [
           {
-            value: 'system-admin',
-            label: 'System Administration',
-            description: 'System management and configuration',
-            icon: 'mdi-cog',
+            value: 'it-corporate-governance',
+            label: 'IT Corporate Governance',
+            description: 'Tata kelola teknologi informasi',
+            icon: 'mdi-server-security',
+            suggestions: itGovernanceSuggestions,
           },
           {
-            value: 'user-management',
-            label: 'User Management',
-            description: 'User accounts and permissions',
-            icon: 'mdi-account-settings',
+            value: 'financial-policy-manual',
+            label: 'Financial Policy Manual',
+            description: 'Manual kebijakan keuangan',
+            icon: 'mdi-currency-usd',
+            suggestions: financialPolicySuggestions,
           },
           {
-            value: 'security',
-            label: 'Security',
-            description: 'Security protocols and measures',
-            icon: 'mdi-security',
-          },
-          {
-            value: 'maintenance',
-            label: 'Maintenance',
-            description: 'System maintenance and updates',
-            icon: 'mdi-wrench',
+            value: 'accounting-procedure',
+            label: 'Accounting and Procedure',
+            description: 'Prosedur akuntansi dan keuangan',
+            icon: 'mdi-calculator',
+            suggestions: accountingSuggestions,
           },
         ];
       case 'ALL':
         return [
           {
-            value: 'general',
-            label: 'General',
-            description: 'General company information',
-            icon: 'mdi-information',
+            value: 'code-of-conduct',
+            label: 'Code of Conduct',
+            description: 'Pedoman etika perilaku dan standar',
+            icon: 'mdi-gavel',
+            suggestions: codeOfConductSuggestions,
           },
           {
-            value: 'procedures',
-            label: 'Procedures',
-            description: 'Standard operating procedures',
-            icon: 'mdi-clipboard-list',
+            value: 'code-of-corporate-governance',
+            label: 'Code of Corporate Governance',
+            description: 'Prinsip tata kelola perusahaan yang baik',
+            icon: 'mdi-shield-check',
+            suggestions: corporateGovernanceSuggestions,
           },
           {
-            value: 'announcements',
-            label: 'Announcements',
-            description: 'Company announcements and news',
-            icon: 'mdi-bullhorn',
+            value: 'perlindungan-data-pribadi',
+            label: 'Perlindungan Data Pribadi',
+            description: 'Kebijakan pelindungan data pribadi',
+            icon: 'mdi-shield-account',
+            suggestions: dataPerlindunganSuggestions,
           },
           {
-            value: 'resources',
-            label: 'Resources',
-            description: 'Company resources and tools',
-            icon: 'mdi-folder',
+            value: 'it-corporate-governance',
+            label: 'IT Corporate Governance',
+            description: 'Tata kelola teknologi informasi',
+            icon: 'mdi-server-security',
+            suggestions: itGovernanceSuggestions,
+          },
+          {
+            value: 'financial-policy-manual',
+            label: 'Financial Policy Manual',
+            description: 'Manual kebijakan keuangan',
+            icon: 'mdi-currency-usd',
+            suggestions: financialPolicySuggestions,
+          },
+          {
+            value: 'manual-tjsl',
+            label: 'Manual TJSL',
+            description: 'Tanggung Jawab Sosial dan Lingkungan',
+            icon: 'mdi-hand-heart',
+            suggestions: tjslSuggestions,
+          },
+          {
+            value: 'manual-msp',
+            label: 'Manual MSP',
+            description: 'Marketing, Sales & Product manual',
+            icon: 'mdi-chart-line',
+            suggestions: mspSuggestions,
+          },
+          {
+            value: 'risk-management-compliance',
+            label: 'Risk Management and Compliance',
+            description: 'Manajemen risiko dan kepatuhan',
+            icon: 'mdi-security',
+            suggestions: riskManagementSuggestions,
+          },
+          {
+            value: 'accounting-procedure',
+            label: 'Accounting and Procedure',
+            description: 'Prosedur akuntansi dan keuangan',
+            icon: 'mdi-calculator',
+            suggestions: accountingSuggestions,
           },
         ];
       default:
@@ -239,6 +342,11 @@
             label: 'General',
             description: 'General inquiries',
             icon: 'mdi-help-circle',
+            suggestions: [
+              'Apa informasi umum tentang Peruri?',
+              'Bagaimana cara menghubungi customer service?',
+              'Apa jam operasional Peruri?',
+            ],
           },
         ];
     }
