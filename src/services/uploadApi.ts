@@ -12,6 +12,7 @@ let uploadedFiles: UploadedFile[] = [
     size: 2048576,
     type: 'application/pdf',
     authority: 'SDM',
+    category: 'employee-handbook',
     description: 'Updated employee handbook with new policies and procedures for 2024',
     uploadedAt: new Date('2024-01-15T10:30:00Z'),
     uploadedBy: 'john.doe@sdm.com',
@@ -23,6 +24,7 @@ let uploadedFiles: UploadedFile[] = [
     size: 1536000,
     type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     authority: 'HUKUM',
+    category: 'compliance',
     description: 'Comprehensive legal compliance guide for corporate governance',
     uploadedAt: new Date('2024-01-20T14:15:00Z'),
     uploadedBy: 'sarah.legal@hukum.com',
@@ -34,6 +36,7 @@ let uploadedFiles: UploadedFile[] = [
     size: 512000,
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     authority: 'SDM',
+    category: 'general',
     description: 'Annual training schedule and materials for employee development',
     uploadedAt: new Date('2024-01-25T09:45:00Z'),
     uploadedBy: 'maria.hr@sdm.com',
@@ -45,6 +48,7 @@ let uploadedFiles: UploadedFile[] = [
     size: 3072000,
     type: 'application/zip',
     authority: 'HUKUM',
+    category: 'contracts',
     description: 'Standard contract templates for various business agreements',
     uploadedAt: new Date('2024-02-01T16:20:00Z'),
     uploadedBy: 'ahmad.law@hukum.com',
@@ -56,6 +60,7 @@ let uploadedFiles: UploadedFile[] = [
     size: 1024000,
     type: 'application/pdf',
     authority: 'SDM',
+    category: 'performance',
     description: 'Guidelines and templates for annual performance reviews',
     uploadedAt: new Date('2024-02-05T11:30:00Z'),
     uploadedBy: 'lisa.hr@sdm.com',
@@ -67,6 +72,7 @@ let uploadedFiles: UploadedFile[] = [
     size: 256000,
     type: 'text/plain',
     authority: 'HUKUM',
+    category: 'compliance',
     description: 'Updated regulatory requirements and compliance checklist',
     uploadedAt: new Date('2024-02-10T13:45:00Z'),
     uploadedBy: 'david.compliance@hukum.com',
@@ -78,6 +84,7 @@ let uploadedFiles: UploadedFile[] = [
     size: 128000,
     type: 'text/markdown',
     authority: 'SDM',
+    category: 'recruitment',
     description: 'Updated recruitment and hiring policies for 2024',
     uploadedAt: new Date('2024-02-12T08:15:00Z'),
     uploadedBy: 'tom.recruiter@sdm.com',
@@ -89,6 +96,7 @@ let uploadedFiles: UploadedFile[] = [
     size: 3584000,
     type: 'application/pdf',
     authority: 'HUKUM',
+    category: 'legal-policies',
     description: 'Comprehensive guide on intellectual property rights and protection',
     uploadedAt: new Date('2024-02-15T15:30:00Z'),
     uploadedBy: 'nina.ip@hukum.com',
@@ -99,12 +107,14 @@ let uploadedFiles: UploadedFile[] = [
  * Upload a file for AI training
  * @param file - The file to upload
  * @param authority - The authority this file belongs to
+ * @param category - The category this file belongs to
  * @param description - Optional description of the file
  * @returns Promise<UploadFileResponse>
  */
 export const uploadFileForTraining = async (
   file: File,
   authority: Authority,
+  category: string,
   description?: string
 ): Promise<UploadFileResponse> => {
   // Simulate API delay
@@ -118,6 +128,7 @@ export const uploadFileForTraining = async (
     size: file.size,
     type: file.type,
     authority: authority,
+    category: category,
     description: description,
     uploadedAt: new Date(),
     uploadedBy: 'current_user@example.com', // In real app, get from auth context
@@ -128,7 +139,7 @@ export const uploadFileForTraining = async (
 
   // Mock response
   return {
-    id: newFile.id,
+    id: String(newFile.id),
     name: file.name,
     size: file.size,
     uploadedAt: newFile.uploadedAt instanceof Date ? newFile.uploadedAt.toISOString() : newFile.uploadedAt,

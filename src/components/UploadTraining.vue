@@ -17,23 +17,23 @@
       <v-row>
         <!-- Uploaded Files List -->
         <v-col cols="12">
-          <v-card class="files-list-card" elevation="2">
+          <v-card class="files-list-card" elevation="1">
             <v-card-title class="card-title">
-              <v-icon start color="success">mdi-file-check</v-icon>
-              Uploaded Files
-              <v-spacer />
-              <v-btn color="primary" size="small" @click="showUploadModal = true" class="me-2">
-                <v-icon start>mdi-plus</v-icon>
-                Add File
-              </v-btn>
-              <v-btn icon size="small" variant="text" @click="refreshFilesList" :loading="loadingFilesList">
-                <v-icon>mdi-refresh</v-icon>
-              </v-btn>
+              <div class="d-flex align-center justify-space-between w-100">
+                <div class="d-flex align-center">
+                  <v-icon start color="success">mdi-file-check</v-icon>
+                  Uploaded Files
+                </div>
+                <v-btn color="primary" size="small" @click="showUploadModal = true">
+                  <v-icon start>mdi-plus</v-icon>
+                  Add File
+                </v-btn>
+              </div>
             </v-card-title>
 
-            <v-card-text class="pa-0">
+            <v-card-text class="card-content">
               <!-- Filter by Authority (for ALL authority users) -->
-              <div v-if="userAuthority === 'ALL'" class="pa-4 pb-0">
+              <div v-if="userAuthority === 'ALL'" class="filter-section">
                 <v-select
                   v-model="filterAuthority"
                   :items="filterAuthorityOptions"
@@ -52,76 +52,80 @@
               </div>
 
               <!-- Data Table -->
-              <v-data-table
-                :headers="tableHeaders"
-                :items="uploadedFiles"
-                :loading="loadingFilesList"
-                item-value="id"
-                class="files-data-table"
-                :items-per-page="10"
-                :items-per-page-options="[5, 10, 25, 50]"
-                density="compact"
-              >
-                <template #loading>
-                  <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
-                </template>
+              <div class="data-table-container">
+                <v-data-table
+                  :headers="tableHeaders"
+                  :items="uploadedFiles"
+                  :loading="loadingFilesList"
+                  item-value="id"
+                  class="files-data-table"
+                  :items-per-page="10"
+                  :items-per-page-options="[5, 10, 25, 50]"
+                  density="compact"
+                >
+                  <template #loading>
+                    <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
+                  </template>
 
-                <template #no-data>
-                  <div class="text-center py-8">
-                    <v-icon size="48" color="grey" class="mb-2">mdi-file-outline</v-icon>
-                    <p class="text-grey">No files uploaded yet</p>
-                  </div>
-                </template>
+                  <template #no-data>
+                    <div class="text-center py-8">
+                      <v-icon size="48" color="grey" class="mb-2">mdi-file-outline</v-icon>
+                      <p class="text-grey">No files uploaded yet</p>
+                    </div>
+                  </template>
 
-                <template #item.filename="{ item }">
-                  <div class="d-flex align-center">
-                    <v-icon
-                      :color="getFileIconColor(getFileTypeFromName(item.filename || item.name))"
-                      class="me-2"
-                      size="20"
-                    >
-                      {{ getFileIcon(getFileTypeFromName(item.filename || item.name)) }}
-                    </v-icon>
-                    <span class="text-truncate" style="max-width: 200px">{{ item.filename || item.name }}</span>
-                  </div>
-                </template>
+                  <template #item.filename="{ item }">
+                    <div class="d-flex align-center">
+                      <v-icon
+                        :color="getFileIconColor(getFileTypeFromName(item.filename || item.name))"
+                        class="me-2"
+                        size="20"
+                      >
+                        {{ getFileIcon(getFileTypeFromName(item.filename || item.name)) }}
+                      </v-icon>
+                      <span class="text-truncate" style="max-width: 200px; color: black">{{
+                        item.filename || item.name
+                      }}</span>
+                    </div>
+                  </template>
 
-                <template #item.authority="{ item }">
-                  <v-chip :color="getAuthorityColor(item.authority)" size="small" variant="tonal">
-                    {{ item.authority }}
-                  </v-chip>
-                </template>
+                  <template #item.authority="{ item }">
+                    <v-chip :color="getAuthorityColor(item.authority)" size="small" variant="tonal">
+                      {{ item.authority }}
+                    </v-chip>
+                  </template>
 
-                <template #item.category="{ item }">
-                  <v-chip color="primary" size="small" variant="outlined">
-                    {{ item.category }}
-                  </v-chip>
-                </template>
+                  <template #item.category="{ item }">
+                    <v-chip color="primary" size="small" variant="outlined">
+                      {{ item.category }}
+                    </v-chip>
+                  </template>
 
-                <template #item.actions="{ item }">
-                  <v-menu>
-                    <template #activator="{ props }">
-                      <v-btn icon size="small" variant="text" v-bind="props">
-                        <v-icon>mdi-dots-vertical</v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item @click="downloadFile(item)">
-                        <v-list-item-title>
-                          <v-icon start>mdi-download</v-icon>
-                          Download
-                        </v-list-item-title>
-                      </v-list-item>
-                      <v-list-item @click="deleteFile(item)" class="text-error">
-                        <v-list-item-title>
-                          <v-icon start>mdi-delete</v-icon>
-                          Delete
-                        </v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-                </template>
-              </v-data-table>
+                  <template #item.actions="{ item }">
+                    <v-menu>
+                      <template #activator="{ props }">
+                        <v-btn icon size="small" variant="text" v-bind="props">
+                          <v-icon>mdi-dots-vertical</v-icon>
+                        </v-btn>
+                      </template>
+                      <v-list>
+                        <v-list-item @click="downloadFile(item)">
+                          <v-list-item-title>
+                            <v-icon start>mdi-download</v-icon>
+                            Download
+                          </v-list-item-title>
+                        </v-list-item>
+                        <v-list-item @click="deleteFile(item)" class="text-error">
+                          <v-list-item-title>
+                            <v-icon start>mdi-delete</v-icon>
+                            Delete
+                          </v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </template>
+                </v-data-table>
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
@@ -130,17 +134,20 @@
 
     <!-- Upload Modal -->
     <v-dialog v-model="showUploadModal" max-width="800px" persistent>
-      <v-card>
-        <v-card-title class="text-h5 bg-primary text-white">
-          <v-icon start>mdi-cloud-upload</v-icon>
-          Upload Files
-          <v-spacer />
-          <v-btn icon variant="text" @click="closeUploadModal" color="white">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
+      <v-card class="upload-modal-card">
+        <v-card-title class="upload-modal-title">
+          <div class="d-flex align-center justify-space-between w-100">
+            <div class="d-flex align-center">
+              <v-icon start color="primary">mdi-cloud-upload</v-icon>
+              Upload Files
+            </div>
+            <v-btn icon variant="text" @click="closeUploadModal" color="grey-darken-1">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </div>
         </v-card-title>
 
-        <v-card-text class="pa-6">
+        <v-card-text class="upload-modal-content">
           <!-- Authority Selection -->
           <v-select
             v-model="modalSelectedAuthority"
@@ -223,9 +230,11 @@
           </div>
         </v-card-text>
 
-        <v-card-actions class="pa-6 pt-0">
+        <v-card-actions class="upload-modal-actions">
           <v-spacer />
-          <v-btn variant="text" @click="closeUploadModal" :disabled="modalUploading"> Cancel </v-btn>
+          <v-btn variant="text" @click="closeUploadModal" :disabled="modalUploading" color="grey-darken-1">
+            Cancel
+          </v-btn>
           <v-btn color="primary" @click="uploadModalFile" :disabled="!canUploadModal" :loading="modalUploading">
             <v-icon start>mdi-upload</v-icon>
             Upload {{ modalSelectedFiles.length > 1 ? `${modalSelectedFiles.length} Files` : 'File' }}
@@ -259,17 +268,19 @@
 
     <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="showDeleteDialog" max-width="400">
-      <v-card>
-        <v-card-title class="text-error">
-          <v-icon start>mdi-alert</v-icon>
-          Confirm Delete
+      <v-card class="delete-modal-card">
+        <v-card-title class="delete-modal-title">
+          <div class="d-flex align-center">
+            <v-icon start color="error">mdi-alert</v-icon>
+            Confirm Delete
+          </div>
         </v-card-title>
-        <v-card-text>
+        <v-card-text class="delete-modal-content">
           Are you sure you want to delete "{{ fileToDelete?.name }}"? This action cannot be undone.
         </v-card-text>
-        <v-card-actions>
+        <v-card-actions class="delete-modal-actions">
           <v-spacer />
-          <v-btn variant="text" @click="showDeleteDialog = false">Cancel</v-btn>
+          <v-btn variant="text" @click="showDeleteDialog = false" color="grey-darken-1">Cancel</v-btn>
           <v-btn color="error" @click="confirmDelete" :loading="deleting">Delete</v-btn>
         </v-card-actions>
       </v-card>
@@ -292,7 +303,12 @@
 <script lang="ts" setup>
   import { computed, onMounted, ref } from 'vue';
   import { useAuth } from '../composables/useAuth';
-  import { deleteUploadedFile, downloadUploadedFile, getUploadedFiles } from '../services/uploadApi';
+  import {
+    deleteUploadedFile,
+    downloadUploadedFile,
+    getUploadedFiles,
+    uploadFileForTraining,
+  } from '../services/uploadApi';
   import type { Authority, UploadedFile } from '../types/chat';
 
   interface Emits {
@@ -412,6 +428,7 @@
     try {
       const authority = userAuthority.value === 'ALL' ? filterAuthority.value : userAuthority.value;
       uploadedFiles.value = await getUploadedFiles(authority);
+      console.log('Uploaded files loaded:', uploadedFiles.value);
     } catch (error) {
       console.error('Failed to load files:', error);
       showError('Failed to load uploaded files');
@@ -623,39 +640,28 @@
 
     try {
       const totalFiles = modalSelectedFiles.value.length;
-      const newFiles: UploadedFile[] = [];
 
       for (let i = 0; i < totalFiles; i++) {
         const file = modalSelectedFiles.value[i];
         currentUploadIndex.value = i;
         currentUploadFile.value = file.name;
 
-        // Create complete file object to match UploadedFile interface
-        const newFile: UploadedFile = {
-          id: uploadedFiles.value.length + i + 1,
-          name: file.name,
-          originalName: file.name,
-          size: file.size,
-          type: file.type,
-          authority: modalSelectedAuthority.value!,
-          category: modalSelectedCategory.value,
-          filename: file.name,
-          description: `Uploaded via modal - Category: ${modalSelectedCategory.value}`,
-          uploadedAt: new Date().toISOString(),
-          uploadedBy: 'current-user',
-        };
+        // Use the actual upload API with category parameter
+        await uploadFileForTraining(
+          file,
+          modalSelectedAuthority.value!,
+          modalSelectedCategory.value,
+          `Uploaded via modal - Category: ${modalSelectedCategory.value}`
+        );
 
-        newFiles.push(newFile);
         uploadProgress.value = ((i + 1) / totalFiles) * 100;
-
-        // Simulate upload delay
-        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      // Add all new files to the list
-      uploadedFiles.value.unshift(...newFiles);
       showSuccess(`Successfully uploaded ${totalFiles} file${totalFiles > 1 ? 's' : ''}`);
       closeUploadModal();
+
+      // Refresh the files list to show the newly uploaded files
+      await refreshFilesList();
     } catch (error) {
       console.error('Upload error:', error);
       showError('Failed to upload files. Please try again.');
@@ -765,13 +771,14 @@
     height: fit-content;
     background-color: #ffffff;
     border: 1px solid #e9ecef;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
     transition: all 0.3s ease;
+    overflow: hidden;
   }
 
   .files-list-card:hover {
-    box-shadow: 0 4px 20px rgba(25, 118, 210, 0.08);
+    box-shadow: 0 2px 16px rgba(25, 118, 210, 0.06);
     border-color: #dee2e6;
   }
 
@@ -779,11 +786,22 @@
     font-size: 1.125rem;
     font-weight: 600;
     color: #2c3e50;
-    background-color: #f8f9fa;
-    padding: 1rem;
-    margin: -1rem -1rem 1rem -1rem;
-    border-radius: 12px 12px 0 0;
-    border-bottom: 1px solid #e9ecef;
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-bottom: 1px solid #f1f3f4;
+  }
+
+  .card-content {
+    padding: 0 !important;
+  }
+
+  .filter-section {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .data-table-container {
+    padding: 0 1.5rem 1.5rem 1.5rem;
   }
 
   .file-drop-zone {
@@ -972,23 +990,87 @@
     color: #6c757d !important;
   }
 
+  /* Upload Modal Light Theme Styling */
+  .upload-modal-card {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  .upload-modal-title {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    padding: 1.5rem !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+  }
+
+  .upload-modal-content {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    padding: 1.5rem !important;
+  }
+
+  .upload-modal-actions {
+    background-color: #ffffff !important;
+    padding: 1rem 1.5rem 1.5rem 1.5rem !important;
+    border-top: 1px solid #f1f3f4 !important;
+  }
+
   /* Upload Progress Dialog Styling */
   .upload-progress-dialog {
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
   }
 
   .upload-progress-title {
-    background-color: #e3f2fd;
-    color: #1976d2;
-    font-weight: 600;
-    border-bottom: 1px solid #bbdefb;
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+    padding: 1.5rem !important;
   }
 
   .upload-progress-content {
-    background-color: #ffffff;
-    color: #2c3e50;
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    padding: 1.5rem !important;
+  }
+
+  /* Delete Modal Light Theme Styling */
+  .delete-modal-card {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  .delete-modal-title {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+    padding: 1.5rem !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+  }
+
+  .delete-modal-content {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    padding: 1.5rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .delete-modal-actions {
+    background-color: #ffffff !important;
+    padding: 1rem 1.5rem 1.5rem 1.5rem !important;
+    border-top: 1px solid #f1f3f4 !important;
   }
 
   .upload-progress-text {
@@ -1180,17 +1262,20 @@
     background-color: #f8f9fa !important;
   }
 
-  /* Modal Dialog Styling */
+  /* Modal Dialog Light Theme Styling */
   :deep(.v-dialog .v-card) {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    border-radius: 16px !important;
+  }
+
+  :deep(.v-dialog .v-card-title) {
     background-color: #ffffff !important;
     color: #2c3e50 !important;
   }
 
-  :deep(.v-dialog .v-card-title) {
-    color: inherit !important;
-  }
-
   :deep(.v-dialog .v-card-text) {
+    background-color: #ffffff !important;
     color: #2c3e50 !important;
   }
 
@@ -1252,44 +1337,168 @@
     color: #1976d2 !important;
   }
 
-  /* Data Table Styling */
+  /* Data Table Light Theme Styling */
   .files-data-table {
     background-color: #ffffff !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    border: 1px solid #f1f3f4 !important;
+  }
+
+  .files-data-table :deep(.v-data-table) {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
   }
 
   .files-data-table :deep(.v-data-table__wrapper) {
     background-color: #ffffff !important;
+    color: secondary !important;
   }
 
   .files-data-table :deep(.v-table) {
     background-color: #ffffff !important;
+    color: #2c3e50 !important;
+  }
+
+  .files-data-table :deep(.v-table .v-table__wrapper) {
+    background-color: #ffffff !important;
+    color: secondary !important;
   }
 
   .files-data-table :deep(.v-table .v-table__wrapper > table) {
     background-color: #ffffff !important;
+    color: secondary !important;
+  }
+
+  /* Table Header Styling */
+  .files-data-table :deep(.v-data-table-header) {
+    background-color: #f8f9fa !important;
+    color: secondary !important;
+  }
+
+  .files-data-table :deep(.v-data-table-header th) {
+    background-color: #f8f9fa !important;
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+    border-bottom: 2px solid #dee2e6 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+  }
+
+  .files-data-table :deep(.v-table .v-table__wrapper > table > thead) {
+    background-color: #f8f9fa !important;
+    color: secondary !important;
+  }
+
+  .files-data-table :deep(.v-table .v-table__wrapper > table > thead > tr) {
+    background-color: #f8f9fa !important;
+    color: secondary !important;
   }
 
   .files-data-table :deep(.v-table .v-table__wrapper > table > thead > tr > th) {
     background-color: #f8f9fa !important;
     color: #2c3e50 !important;
     font-weight: 600 !important;
-    border-bottom: 1px solid #dee2e6 !important;
+    border-bottom: 2px solid #dee2e6 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+  }
+
+  .files-data-table :deep(.v-data-table__th) {
+    background-color: #f8f9fa !important;
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+    border-bottom: 2px solid #dee2e6 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+  }
+
+  /* Table Body Styling */
+  .files-data-table :deep(.v-table .v-table__wrapper > table > tbody) {
+    background-color: #ffffff !important;
+    color: secondary !important;
+  }
+
+  .files-data-table :deep(.v-table .v-table__wrapper > table > tbody > tr) {
+    background-color: #ffffff !important;
+    transition: background-color 0.2s ease !important;
+    color: secondary !important;
+  }
+
+  .files-data-table :deep(.v-table .v-table__wrapper > table > tbody > tr:hover) {
+    background-color: #f8f9fa !important;
+    color: secondary !important;
   }
 
   .files-data-table :deep(.v-table .v-table__wrapper > table > tbody > tr > td) {
-    background-color: #ffffff !important;
+    background-color: inherit !important;
     color: #2c3e50 !important;
     border-bottom: 1px solid #f1f3f4 !important;
+    padding: 12px 16px !important;
   }
 
-  .files-data-table :deep(.v-table .v-table__wrapper > table > tbody > tr:hover > td) {
-    background-color: #f8f9fa !important;
-  }
-
+  /* Table Footer Styling */
   .files-data-table :deep(.v-data-table-footer) {
     background-color: #ffffff !important;
     color: #2c3e50 !important;
     border-top: 1px solid #dee2e6 !important;
+  }
+
+  .files-data-table :deep(.v-data-table-footer .v-data-table-footer__items-per-page) {
+    color: #2c3e50 !important;
+  }
+
+  .files-data-table :deep(.v-data-table-footer .v-data-table-footer__pagination) {
+    color: #2c3e50 !important;
+  }
+
+  .files-data-table :deep(.v-data-table-footer .v-btn) {
+    color: #2c3e50 !important;
+  }
+
+  /* Additional Header Text Visibility Fixes */
+  .files-data-table :deep(.v-data-table-header__content) {
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+  }
+
+  .files-data-table :deep(.v-data-table__th .v-data-table-header__content) {
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+  }
+
+  .files-data-table :deep(.v-data-table__th span) {
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+  }
+
+  .files-data-table :deep(.v-data-table-header th span) {
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Force header text color on all possible elements */
+  .files-data-table :deep(th) {
+    background-color: #f8f9fa !important;
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+  }
+
+  .files-data-table :deep(th *) {
+    color: #2c3e50 !important;
+  }
+
+  /* Loading and No Data Styling */
+  .files-data-table :deep(.v-data-table__loading) {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+  }
+
+  .files-data-table :deep(.v-skeleton-loader) {
+    background-color: #f8f9fa !important;
   }
 
   /* Responsive adjustments */
