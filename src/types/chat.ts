@@ -31,12 +31,14 @@ export interface ChatBotRequest {
 }
 
 export interface UploadedFile {
-  id: string;
+  id: string | number;
   name: string;
   originalName: string;
   size: number;
   type: string;
   authority: Authority;
+  category?: string;
+  filename?: string;
   description?: string;
   uploadedAt: Date | string;
   uploadedBy: string;

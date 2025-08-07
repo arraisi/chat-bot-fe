@@ -15,138 +15,25 @@
 
     <div class="upload-content">
       <v-row>
-        <!-- Upload Section -->
-        <v-col cols="12" lg="8">
-          <v-card class="upload-card" elevation="2">
-            <v-card-title class="card-title">
-              <v-icon start color="primary">mdi-cloud-upload</v-icon>
-              Upload New Files
-            </v-card-title>
-
-            <v-card-text>
-              <!-- Authority Selection (for ALL, ADMIN, SDM, HUKUM authority users) -->
-              <div
-                v-if="
-                  userAuthority === 'ALL' ||
-                  userAuthority === 'ADMIN' ||
-                  userAuthority === 'SDM' ||
-                  userAuthority === 'HUKUM'
-                "
-                class="mb-6"
-              >
-                <v-select
-                  v-model="selectedTargetAuthority"
-                  :items="targetAuthorityOptions"
-                  item-title="name"
-                  item-value="code"
-                  label="Select Target Authority"
-                  variant="outlined"
-                  dense
-                  :error-messages="errors.targetAuthority"
-                  class="mb-4"
-                >
-                  <template #prepend-inner>
-                    <v-icon>mdi-shield-account</v-icon>
-                  </template>
-                </v-select>
-              </div>
-
-              <!-- File Upload Zone -->
-              <div
-                class="file-drop-zone"
-                :class="{ 'drag-over': isDragOver, 'has-files': selectedFiles.length > 0 }"
-                @drop="handleDrop"
-                @dragover.prevent="isDragOver = true"
-                @dragleave="isDragOver = false"
-                @click="triggerFileInput"
-              >
-                <input
-                  ref="fileInput"
-                  type="file"
-                  multiple
-                  accept=".pdf,.doc,.docx,.txt,.md,.xlsx,.xls,.zip"
-                  @change="handleFileSelect"
-                  style="display: none"
-                />
-
-                <div v-if="selectedFiles.length === 0" class="drop-zone-content">
-                  <v-icon size="64" color="primary" class="mb-4">mdi-cloud-upload-outline</v-icon>
-                  <h3 class="drop-zone-title">Drop files here or click to browse</h3>
-                  <p class="drop-zone-subtitle">
-                    Supported formats: PDF, DOC, DOCX, TXT, MD, XLSX, XLS, ZIP<br />
-                    Maximum file size: 10MB per file
-                  </p>
-                </div>
-
-                <div v-else class="selected-files">
-                  <h4 class="mb-3">Selected Files ({{ selectedFiles.length }})</h4>
-                  <v-list density="compact">
-                    <v-list-item v-for="(file, index) in selectedFiles" :key="index" class="file-item">
-                      <template #prepend>
-                        <v-icon :color="getFileIconColor(file.type)">
-                          {{ getFileIcon(file.type) }}
-                        </v-icon>
-                      </template>
-
-                      <v-list-item-title>{{ file.name }}</v-list-item-title>
-                      <v-list-item-subtitle>{{ formatFileSize(file.size) }}</v-list-item-subtitle>
-
-                      <template #append>
-                        <v-btn icon size="small" variant="text" @click.stop="removeFile(index)">
-                          <v-icon>mdi-close</v-icon>
-                        </v-btn>
-                      </template>
-                    </v-list-item>
-                  </v-list>
-                </div>
-              </div>
-
-              <!-- Upload Description -->
-              <v-textarea
-                v-model="uploadDescription"
-                label="Description (Optional)"
-                placeholder="Describe the content and purpose of these files..."
-                variant="outlined"
-                rows="3"
-                class="mt-4"
-                :error-messages="errors.description"
-              />
-
-              <!-- Upload Actions -->
-              <div class="upload-actions mt-4">
-                <v-btn
-                  color="primary"
-                  size="large"
-                  :disabled="!canUpload"
-                  :loading="uploading"
-                  @click="uploadFiles"
-                  class="upload-btn"
-                >
-                  <v-icon start>mdi-upload</v-icon>
-                  Upload Files
-                </v-btn>
-
-                <v-btn variant="text" :disabled="uploading" @click="clearFiles" class="ml-2"> Clear All </v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
         <!-- Uploaded Files List -->
-        <v-col cols="12" lg="4">
+        <v-col cols="12">
           <v-card class="files-list-card" elevation="2">
             <v-card-title class="card-title">
               <v-icon start color="success">mdi-file-check</v-icon>
               Uploaded Files
               <v-spacer />
+              <v-btn color="primary" size="small" @click="showUploadModal = true" class="me-2">
+                <v-icon start>mdi-plus</v-icon>
+                Add File
+              </v-btn>
               <v-btn icon size="small" variant="text" @click="refreshFilesList" :loading="loadingFilesList">
                 <v-icon>mdi-refresh</v-icon>
               </v-btn>
             </v-card-title>
 
-            <v-card-text>
+            <v-card-text class="pa-0">
               <!-- Filter by Authority (for ALL authority users) -->
-              <div v-if="userAuthority === 'ALL'" class="mb-4">
+              <div v-if="userAuthority === 'ALL'" class="pa-4 pb-0">
                 <v-select
                   v-model="filterAuthority"
                   :items="filterAuthorityOptions"
@@ -164,67 +51,188 @@
                 </v-select>
               </div>
 
-              <div v-if="loadingFilesList" class="text-center py-4">
-                <v-progress-circular indeterminate color="primary" />
-                <p class="mt-2">Loading files...</p>
-              </div>
+              <!-- Data Table -->
+              <v-data-table
+                :headers="tableHeaders"
+                :items="uploadedFiles"
+                :loading="loadingFilesList"
+                item-value="id"
+                class="files-data-table"
+                :items-per-page="10"
+                :items-per-page-options="[5, 10, 25, 50]"
+                density="compact"
+              >
+                <template #loading>
+                  <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
+                </template>
 
-              <div v-else-if="uploadedFiles.length === 0" class="text-center py-8">
-                <v-icon size="48" color="grey" class="mb-2">mdi-file-outline</v-icon>
-                <p class="text-grey">No files uploaded yet</p>
-              </div>
+                <template #no-data>
+                  <div class="text-center py-8">
+                    <v-icon size="48" color="grey" class="mb-2">mdi-file-outline</v-icon>
+                    <p class="text-grey">No files uploaded yet</p>
+                  </div>
+                </template>
 
-              <v-list v-else density="compact">
-                <v-list-item v-for="file in uploadedFiles" :key="file.id" class="uploaded-file-item">
+                <template #item.filename="{ item }">
+                  <div class="d-flex align-center">
+                    <v-icon
+                      :color="getFileIconColor(getFileTypeFromName(item.filename || item.name))"
+                      class="me-2"
+                      size="20"
+                    >
+                      {{ getFileIcon(getFileTypeFromName(item.filename || item.name)) }}
+                    </v-icon>
+                    <span class="text-truncate" style="max-width: 200px">{{ item.filename || item.name }}</span>
+                  </div>
+                </template>
+
+                <template #item.authority="{ item }">
+                  <v-chip :color="getAuthorityColor(item.authority)" size="small" variant="tonal">
+                    {{ item.authority }}
+                  </v-chip>
+                </template>
+
+                <template #item.category="{ item }">
+                  <v-chip color="primary" size="small" variant="outlined">
+                    {{ item.category }}
+                  </v-chip>
+                </template>
+
+                <template #item.actions="{ item }">
+                  <v-menu>
+                    <template #activator="{ props }">
+                      <v-btn icon size="small" variant="text" v-bind="props">
+                        <v-icon>mdi-dots-vertical</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item @click="downloadFile(item)">
+                        <v-list-item-title>
+                          <v-icon start>mdi-download</v-icon>
+                          Download
+                        </v-list-item-title>
+                      </v-list-item>
+                      <v-list-item @click="deleteFile(item)" class="text-error">
+                        <v-list-item-title>
+                          <v-icon start>mdi-delete</v-icon>
+                          Delete
+                        </v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </template>
+              </v-data-table>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+
+    <!-- Upload Modal -->
+    <v-dialog v-model="showUploadModal" max-width="800px" persistent>
+      <v-card>
+        <v-card-title class="text-h5 bg-primary text-white">
+          <v-icon start>mdi-cloud-upload</v-icon>
+          Upload Files
+          <v-spacer />
+          <v-btn icon variant="text" @click="closeUploadModal" color="white">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-6">
+          <!-- Authority Selection -->
+          <v-select
+            v-model="modalSelectedAuthority"
+            :items="targetAuthorityOptions"
+            item-title="name"
+            item-value="code"
+            label="Target Authority"
+            variant="outlined"
+            class="mb-4"
+            :error-messages="modalErrors.authority"
+            :disabled="userAuthority !== 'ALL' && userAuthority !== 'ADMIN'"
+          >
+            <template #prepend-inner>
+              <v-icon>mdi-shield-account</v-icon>
+            </template>
+          </v-select>
+
+          <!-- Category Selection -->
+          <v-select
+            v-model="modalSelectedCategory"
+            :items="categoryOptions"
+            label="Category"
+            variant="outlined"
+            class="mb-4"
+            :error-messages="modalErrors.category"
+          >
+            <template #prepend-inner>
+              <v-icon>mdi-tag</v-icon>
+            </template>
+          </v-select>
+
+          <!-- File Upload -->
+          <div
+            class="file-drop-zone"
+            :class="{ 'drag-over': isModalDragOver, 'has-files': modalSelectedFiles.length > 0 }"
+            @drop="handleModalDrop"
+            @dragover.prevent="isModalDragOver = true"
+            @dragleave="isModalDragOver = false"
+            @click="triggerModalFileInput"
+          >
+            <input
+              ref="modalFileInput"
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.txt,.md,.xlsx,.xls,.zip"
+              @change="handleModalFileSelect"
+              style="display: none"
+            />
+
+            <div v-if="modalSelectedFiles.length === 0" class="drop-zone-content">
+              <v-icon size="48" color="primary" class="mb-3">mdi-cloud-upload-outline</v-icon>
+              <h4 class="drop-zone-title">Drop files here or click to browse</h4>
+              <p class="drop-zone-subtitle">
+                Supported formats: PDF, DOC, DOCX, TXT, MD, XLSX, XLS, ZIP<br />
+                Maximum file size: 10MB per file
+              </p>
+            </div>
+
+            <div v-else class="selected-files">
+              <h4 class="mb-3">Selected Files ({{ modalSelectedFiles.length }})</h4>
+              <v-list density="compact">
+                <v-list-item v-for="(file, index) in modalSelectedFiles" :key="index" class="file-item">
                   <template #prepend>
                     <v-icon :color="getFileIconColor(file.type)">
                       {{ getFileIcon(file.type) }}
                     </v-icon>
                   </template>
 
-                  <div class="file-info">
-                    <v-list-item-title class="file-name">{{ file.name }}</v-list-item-title>
-                    <v-list-item-subtitle class="file-details">
-                      {{ formatFileSize(file.size) }} • {{ file.authority }}
-                    </v-list-item-subtitle>
-                    <v-list-item-subtitle class="file-date">
-                      {{ formatUploadDate(file.uploadedAt) }}
-                    </v-list-item-subtitle>
-                    <div v-if="file.description" class="file-description mt-1">
-                      {{ file.description }}
-                    </div>
-                  </div>
+                  <v-list-item-title>{{ file.name }}</v-list-item-title>
+                  <v-list-item-subtitle>{{ formatFileSize(file.size) }}</v-list-item-subtitle>
 
                   <template #append>
-                    <v-menu>
-                      <template #activator="{ props }">
-                        <v-btn icon size="small" variant="text" v-bind="props">
-                          <v-icon>mdi-dots-vertical</v-icon>
-                        </v-btn>
-                      </template>
-                      <v-list>
-                        <v-list-item @click="downloadFile(file)">
-                          <v-list-item-title>
-                            <v-icon start>mdi-download</v-icon>
-                            Download
-                          </v-list-item-title>
-                        </v-list-item>
-                        <v-list-item @click="deleteFile(file)" class="text-error">
-                          <v-list-item-title>
-                            <v-icon start>mdi-delete</v-icon>
-                            Delete
-                          </v-list-item-title>
-                        </v-list-item>
-                      </v-list>
-                    </v-menu>
+                    <v-btn icon size="small" variant="text" @click.stop="removeModalFile(index)">
+                      <v-icon>mdi-close</v-icon>
+                    </v-btn>
                   </template>
                 </v-list-item>
               </v-list>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-    </div>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="pa-6 pt-0">
+          <v-spacer />
+          <v-btn variant="text" @click="closeUploadModal" :disabled="modalUploading"> Cancel </v-btn>
+          <v-btn color="primary" @click="uploadModalFile" :disabled="!canUploadModal" :loading="modalUploading">
+            <v-icon start>mdi-upload</v-icon>
+            Upload {{ modalSelectedFiles.length > 1 ? `${modalSelectedFiles.length} Files` : 'File' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Upload Progress Dialog -->
     <v-dialog v-model="showUploadProgress" persistent max-width="400">
@@ -240,7 +248,7 @@
             </v-progress-circular>
           </div>
           <p class="text-center upload-progress-text">
-            Uploading {{ currentUploadIndex + 1 }} of {{ selectedFiles.length }} files...
+            Uploading {{ currentUploadIndex + 1 }} of {{ modalSelectedFiles.length }} files...
           </p>
           <p class="text-center text-caption upload-progress-filename">
             {{ currentUploadFile }}
@@ -284,12 +292,7 @@
 <script lang="ts" setup>
   import { computed, onMounted, ref } from 'vue';
   import { useAuth } from '../composables/useAuth';
-  import {
-    deleteUploadedFile,
-    downloadUploadedFile,
-    getUploadedFiles,
-    uploadFileForTraining,
-  } from '../services/uploadApi';
+  import { deleteUploadedFile, downloadUploadedFile, getUploadedFiles } from '../services/uploadApi';
   import type { Authority, UploadedFile } from '../types/chat';
 
   interface Emits {
@@ -300,16 +303,25 @@
   const { userAuthority } = useAuth();
 
   // Reactive state
-  const selectedFiles = ref<File[]>([]);
-  const uploadDescription = ref('');
-  const selectedTargetAuthority = ref<Authority | null>(null);
   const filterAuthority = ref<Authority | null>(null);
   const uploadedFiles = ref<UploadedFile[]>([]);
-  const isDragOver = ref(false);
-  const uploading = ref(false);
   const loadingFilesList = ref(false);
   const deleting = ref(false);
-  const fileInput = ref<HTMLInputElement | null>(null);
+
+  // Modal state
+  const showUploadModal = ref(false);
+  const modalSelectedAuthority = ref<Authority | null>(null);
+  const modalSelectedCategory = ref<string>('');
+  const modalSelectedFiles = ref<File[]>([]);
+  const isModalDragOver = ref(false);
+  const modalUploading = ref(false);
+  const modalFileInput = ref<HTMLInputElement | null>(null);
+
+  // Modal validation errors
+  const modalErrors = ref({
+    authority: '',
+    category: '',
+  });
 
   // Upload progress
   const showUploadProgress = ref(false);
@@ -326,12 +338,6 @@
   const showErrorMessage = ref(false);
   const successMessage = ref('');
   const errorMessage = ref('');
-
-  // Validation errors
-  const errors = ref({
-    targetAuthority: '',
-    description: '',
-  });
 
   // Authority options based on user authority
   const targetAuthorityOptions = computed(() => {
@@ -353,6 +359,35 @@
     ...targetAuthorityOptions.value,
   ]);
 
+  // Category options
+  const categoryOptions = ref([
+    'performance',
+    'hr-policies',
+    'employee-handbook',
+    'recruitment',
+    'code-of-conduct',
+    'compliance',
+    'contracts',
+    'legal-policies',
+    'system-admin',
+    'user-management',
+    'security',
+    'maintenance',
+    'general',
+    'procedures',
+    'announcements',
+    'resources',
+  ]);
+
+  // Data table headers
+  const tableHeaders = ref([
+    { title: 'ID', key: 'id', width: '80px' },
+    { title: 'Filename', key: 'filename', width: '250px' },
+    { title: 'Authority', key: 'authority', width: '120px' },
+    { title: 'Category', key: 'category', width: '150px' },
+    { title: 'Actions', key: 'actions', width: '80px', sortable: false },
+  ]);
+
   // Computed properties
   const currentAuthorityName = computed(() => {
     if (userAuthority.value === 'ALL') {
@@ -362,130 +397,16 @@
     return authority?.name || userAuthority.value;
   });
 
-  const canUpload = computed(() => {
-    const hasFiles = selectedFiles.value.length > 0;
-    const hasValidAuthority =
-      userAuthority.value === 'ALL' || userAuthority.value === 'ADMIN' ? selectedTargetAuthority.value : true; // For SDM and HUKUM users, authority is automatically set
-    return hasFiles && hasValidAuthority && !uploading.value;
-  });
-
-  const effectiveAuthority = computed(() => {
-    if (userAuthority.value === 'ALL' || userAuthority.value === 'ADMIN') {
-      return selectedTargetAuthority.value;
-    }
-    return userAuthority.value; // For SDM and HUKUM users, use their own authority
+  const canUploadModal = computed(() => {
+    return (
+      modalSelectedFiles.value.length > 0 &&
+      modalSelectedAuthority.value &&
+      modalSelectedCategory.value &&
+      !modalUploading.value
+    );
   });
 
   // Methods
-  const triggerFileInput = () => {
-    fileInput.value?.click();
-  };
-
-  const handleFileSelect = (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    if (target.files) {
-      addFiles(Array.from(target.files));
-    }
-  };
-
-  const handleDrop = (event: DragEvent) => {
-    event.preventDefault();
-    isDragOver.value = false;
-
-    if (event.dataTransfer?.files) {
-      addFiles(Array.from(event.dataTransfer.files));
-    }
-  };
-
-  const addFiles = (files: File[]) => {
-    const validFiles = files.filter(file => {
-      const validTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain',
-        'text/markdown',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/zip',
-      ];
-
-      const maxSize = 10 * 1024 * 1024; // 10MB
-
-      if (!validTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|txt|md|xlsx|xls|zip)$/i)) {
-        showError(`File ${file.name} has an unsupported format.`);
-        return false;
-      }
-
-      if (file.size > maxSize) {
-        showError(`File ${file.name} is too large. Maximum size is 10MB.`);
-        return false;
-      }
-
-      return true;
-    });
-
-    selectedFiles.value.push(...validFiles);
-  };
-
-  const removeFile = (index: number) => {
-    selectedFiles.value.splice(index, 1);
-  };
-
-  const clearFiles = () => {
-    selectedFiles.value = [];
-    uploadDescription.value = '';
-    clearErrors();
-  };
-
-  const validateForm = (): boolean => {
-    clearErrors();
-    let isValid = true;
-
-    if ((userAuthority.value === 'ALL' || userAuthority.value === 'ADMIN') && !selectedTargetAuthority.value) {
-      errors.value.targetAuthority = 'Please select a target authority';
-      isValid = false;
-    }
-
-    return isValid;
-  };
-
-  const uploadFiles = async () => {
-    if (!validateForm()) return;
-
-    uploading.value = true;
-    showUploadProgress.value = true;
-    uploadProgress.value = 0;
-    currentUploadIndex.value = 0;
-
-    try {
-      const authority = effectiveAuthority.value!;
-      const totalFiles = selectedFiles.value.length;
-
-      for (let i = 0; i < totalFiles; i++) {
-        const file = selectedFiles.value[i];
-        currentUploadIndex.value = i;
-        currentUploadFile.value = file.name;
-
-        // Use the actual upload service
-        await uploadFileForTraining(file, authority, uploadDescription.value);
-
-        uploadProgress.value = ((i + 1) / totalFiles) * 100;
-      }
-
-      showSuccess(`Successfully uploaded ${totalFiles} file${totalFiles > 1 ? 's' : ''}`);
-      clearFiles();
-      await refreshFilesList();
-    } catch (error) {
-      console.error('Upload error:', error);
-      showError('Failed to upload files. Please try again.');
-    } finally {
-      uploading.value = false;
-      showUploadProgress.value = false;
-      uploadProgress.value = 0;
-    }
-  };
-
   const refreshFilesList = async () => {
     loadingFilesList.value = true;
     try {
@@ -509,7 +430,7 @@
 
     deleting.value = true;
     try {
-      await deleteUploadedFile(fileToDelete.value.id);
+      await deleteUploadedFile(String(fileToDelete.value.id));
       showSuccess('File deleted successfully');
       await refreshFilesList();
     } catch (error) {
@@ -524,8 +445,8 @@
 
   const downloadFile = async (file: UploadedFile) => {
     try {
-      await downloadUploadedFile(file.id, file.name);
-      showSuccess(`Downloaded ${file.name}`);
+      await downloadUploadedFile(String(file.id), file.filename || file.name);
+      showSuccess(`Downloaded ${file.filename || file.name}`);
     } catch (error) {
       console.error('Download error:', error);
       showError('Failed to download file');
@@ -563,6 +484,188 @@
     return dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString();
   };
 
+  // New helper methods for data table
+  const getFileTypeFromName = (filename: string): string => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'doc':
+      case 'docx':
+        return 'application/msword';
+      case 'xls':
+      case 'xlsx':
+        return 'application/vnd.ms-excel';
+      case 'txt':
+        return 'text/plain';
+      case 'md':
+        return 'text/markdown';
+      case 'zip':
+        return 'application/zip';
+      default:
+        return 'application/octet-stream';
+    }
+  };
+
+  const getAuthorityColor = (authority: string): string => {
+    switch (authority) {
+      case 'SDM':
+        return 'blue';
+      case 'HUKUM':
+        return 'purple';
+      case 'ADMIN':
+        return 'orange';
+      case 'ALL':
+        return 'green';
+      default:
+        return 'grey';
+    }
+  };
+
+  // Modal methods
+  const closeUploadModal = () => {
+    showUploadModal.value = false;
+    modalSelectedFiles.value = [];
+    modalSelectedAuthority.value = null;
+    modalSelectedCategory.value = '';
+    clearModalErrors();
+  };
+
+  const triggerModalFileInput = () => {
+    modalFileInput.value?.click();
+  };
+
+  const handleModalFileSelect = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files) {
+      addModalFiles(Array.from(target.files));
+    }
+  };
+
+  const handleModalDrop = (event: DragEvent) => {
+    event.preventDefault();
+    isModalDragOver.value = false;
+
+    if (event.dataTransfer?.files) {
+      addModalFiles(Array.from(event.dataTransfer.files));
+    }
+  };
+
+  const addModalFiles = (files: File[]) => {
+    const validFiles = files.filter(file => {
+      const validTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain',
+        'text/markdown',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/zip',
+      ];
+
+      const maxSize = 10 * 1024 * 1024; // 10MB
+
+      if (!validTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|txt|md|xlsx|xls|zip)$/i)) {
+        showError(`File ${file.name} has an unsupported format.`);
+        return false;
+      }
+
+      if (file.size > maxSize) {
+        showError(`File ${file.name} is too large. Maximum size is 10MB.`);
+        return false;
+      }
+
+      return true;
+    });
+
+    modalSelectedFiles.value.push(...validFiles);
+  };
+
+  const removeModalFile = (index: number) => {
+    modalSelectedFiles.value.splice(index, 1);
+  };
+
+  const clearModalFiles = () => {
+    modalSelectedFiles.value = [];
+  };
+
+  const clearModalErrors = () => {
+    modalErrors.value = {
+      authority: '',
+      category: '',
+    };
+  };
+
+  const validateModalForm = (): boolean => {
+    clearModalErrors();
+    let isValid = true;
+
+    if (!modalSelectedAuthority.value) {
+      modalErrors.value.authority = 'Please select an authority';
+      isValid = false;
+    }
+
+    if (!modalSelectedCategory.value) {
+      modalErrors.value.category = 'Please select a category';
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  const uploadModalFile = async () => {
+    if (!validateModalForm() || modalSelectedFiles.value.length === 0) return;
+
+    modalUploading.value = true;
+    showUploadProgress.value = true;
+    uploadProgress.value = 0;
+
+    try {
+      const totalFiles = modalSelectedFiles.value.length;
+      const newFiles: UploadedFile[] = [];
+
+      for (let i = 0; i < totalFiles; i++) {
+        const file = modalSelectedFiles.value[i];
+        currentUploadIndex.value = i;
+        currentUploadFile.value = file.name;
+
+        // Create complete file object to match UploadedFile interface
+        const newFile: UploadedFile = {
+          id: uploadedFiles.value.length + i + 1,
+          name: file.name,
+          originalName: file.name,
+          size: file.size,
+          type: file.type,
+          authority: modalSelectedAuthority.value!,
+          category: modalSelectedCategory.value,
+          filename: file.name,
+          description: `Uploaded via modal - Category: ${modalSelectedCategory.value}`,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: 'current-user',
+        };
+
+        newFiles.push(newFile);
+        uploadProgress.value = ((i + 1) / totalFiles) * 100;
+
+        // Simulate upload delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // Add all new files to the list
+      uploadedFiles.value.unshift(...newFiles);
+      showSuccess(`Successfully uploaded ${totalFiles} file${totalFiles > 1 ? 's' : ''}`);
+      closeUploadModal();
+    } catch (error) {
+      console.error('Upload error:', error);
+      showError('Failed to upload files. Please try again.');
+    } finally {
+      modalUploading.value = false;
+      showUploadProgress.value = false;
+      uploadProgress.value = 0;
+    }
+  };
+
   const showSuccess = (message: string) => {
     successMessage.value = message;
     showSuccessMessage.value = true;
@@ -573,21 +676,42 @@
     showErrorMessage.value = true;
   };
 
-  const clearErrors = () => {
-    errors.value = {
-      targetAuthority: '',
-      description: '',
-    };
-  };
-
   // Initialize
   onMounted(() => {
     // Set default target authority for SDM and HUKUM users
     if (userAuthority.value === 'SDM' || userAuthority.value === 'HUKUM') {
-      selectedTargetAuthority.value = userAuthority.value;
+      modalSelectedAuthority.value = userAuthority.value;
     }
 
-    refreshFilesList();
+    // Load sample data
+    uploadedFiles.value = [
+      {
+        id: 1,
+        authority: 'SDM',
+        category: 'performance',
+        filename: 'test.pdf',
+        name: 'test.pdf',
+        originalName: 'test.pdf',
+        size: 1024000,
+        type: 'application/pdf',
+        description: 'Sample performance document',
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: 'admin',
+      },
+      {
+        id: 2,
+        authority: 'HUKUM',
+        category: 'compliance',
+        filename: 'legal-doc.docx',
+        name: 'legal-doc.docx',
+        originalName: 'legal-doc.docx',
+        size: 512000,
+        type: 'application/msword',
+        description: 'Legal compliance document',
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: 'legal-team',
+      },
+    ];
   });
 </script>
 
@@ -600,10 +724,11 @@
   }
 
   .upload-header {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-    color: #202887;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #2c3e50;
     padding: 1rem;
     flex-shrink: 0;
+    border-bottom: 1px solid #dee2e6;
   }
 
   .header-content {
@@ -613,19 +738,21 @@
   }
 
   .close-btn {
-    color: primary;
+    color: #2c3e50 !important;
   }
 
   .header-text h1 {
     font-size: 1.5rem;
     font-weight: 600;
     margin: 0;
+    color: #2c3e50;
   }
 
   .header-text p {
     font-size: 0.9rem;
-    opacity: 0.9;
+    opacity: 0.8;
     margin: 0.25rem 0 0 0;
+    color: #6c757d;
   }
 
   .upload-content {
@@ -634,7 +761,6 @@
     padding: 1.5rem;
   }
 
-  .upload-card,
   .files-list-card {
     height: fit-content;
     background-color: #ffffff;
@@ -644,9 +770,8 @@
     transition: all 0.3s ease;
   }
 
-  .upload-card:hover,
   .files-list-card:hover {
-    box-shadow: 0 4px 20px rgba(32, 40, 135, 0.08);
+    box-shadow: 0 4px 20px rgba(25, 118, 210, 0.08);
     border-color: #dee2e6;
   }
 
@@ -676,8 +801,8 @@
 
   .file-drop-zone:hover,
   .file-drop-zone.drag-over {
-    border-color: #202887;
-    background-color: #f8f9ff;
+    border-color: #1976d2;
+    background-color: #f3f8ff;
   }
 
   .file-drop-zone.has-files {
@@ -693,54 +818,78 @@
   }
 
   .drop-zone-title {
-    color: #202887;
+    color: #1976d2;
     font-size: 1.125rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
   }
 
   .drop-zone-subtitle {
-    color: #666;
+    color: #6c757d;
     font-size: 0.875rem;
     line-height: 1.4;
   }
 
   .selected-files {
     width: 100%;
-    background: #fff;
-    color: #222;
+    background: #ffffff;
+    color: #2c3e50;
   }
 
   .selected-files h4 {
-    color: #222;
+    color: #2c3e50;
+    font-weight: 600;
   }
 
   .selected-files .v-list {
-    background: #fff;
-    color: #222;
+    background: #ffffff;
+    color: #2c3e50;
   }
 
   .selected-files .v-list-item-title {
-    color: #222;
+    color: #2c3e50;
+    font-weight: 500;
   }
 
   .selected-files .v-list-item-subtitle {
-    color: #444;
+    color: #6c757d;
+  }
+
+  .selected-file {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    color: #2c3e50;
+  }
+
+  .selected-file h4 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .selected-file p {
+    margin: 0;
+    color: #6c757d;
   }
 
   .file-item {
-    background: #fff;
+    background: #ffffff;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     margin-bottom: 0.5rem;
     transition: all 0.2s ease;
-    color: #222;
+    color: #2c3e50;
   }
 
   .file-item:hover {
-    background: #f5f5f5;
-    border-color: #202887;
-    box-shadow: 0 2px 8px rgba(32, 40, 135, 0.1);
+    background: #f8f9fa;
+    border-color: #1976d2;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
   }
 
   /* Light Mode Uploaded Files List Styling */
@@ -823,16 +972,6 @@
     color: #6c757d !important;
   }
 
-  .upload-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-  }
-
-  .upload-btn {
-    font-weight: 600;
-  }
-
   /* Upload Progress Dialog Styling */
   .upload-progress-dialog {
     background-color: #ffffff;
@@ -841,26 +980,26 @@
   }
 
   .upload-progress-title {
-    background-color: #f8f9ff;
-    color: #202887;
+    background-color: #e3f2fd;
+    color: #1976d2;
     font-weight: 600;
-    border-bottom: 1px solid #e3f2fd;
+    border-bottom: 1px solid #bbdefb;
   }
 
   .upload-progress-content {
     background-color: #ffffff;
-    color: #333;
+    color: #2c3e50;
   }
 
   .upload-progress-text {
-    color: #555;
+    color: #2c3e50;
     font-weight: 500;
   }
 
   .upload-progress-filename {
-    color: #777;
+    color: #6c757d;
     font-style: italic;
-    background-color: #f5f5f5;
+    background-color: #f8f9fa;
     padding: 0.5rem;
     border-radius: 6px;
     margin: 0.5rem 0;
@@ -882,11 +1021,11 @@
   }
 
   :deep(.v-select .v-field__append-inner) {
-    color: #202887 !important;
+    color: #1976d2 !important;
   }
 
   :deep(.v-select .v-field__prepend-inner) {
-    color: #202887 !important;
+    color: #1976d2 !important;
   }
 
   :deep(.v-select .v-field__label) {
@@ -895,7 +1034,7 @@
   }
 
   :deep(.v-select .v-field--focused .v-field__label) {
-    color: #202887 !important;
+    color: #1976d2 !important;
     font-weight: 600 !important;
   }
 
@@ -908,7 +1047,7 @@
   }
 
   :deep(.v-select .v-field--focused .v-field__outline) {
-    color: #202887 !important;
+    color: #1976d2 !important;
   }
 
   :deep(.v-select .v-field--variant-outlined .v-field__outline__start) {
@@ -924,15 +1063,15 @@
   }
 
   :deep(.v-select .v-field--focused .v-field__outline__start) {
-    border-color: #202887 !important;
+    border-color: #1976d2 !important;
   }
 
   :deep(.v-select .v-field--focused .v-field__outline__end) {
-    border-color: #202887 !important;
+    border-color: #1976d2 !important;
   }
 
   :deep(.v-select .v-field--focused .v-field__outline__notch) {
-    border-color: #202887 !important;
+    border-color: #1976d2 !important;
   }
 
   /* Light Mode Dropdown Menu Styling */
@@ -952,12 +1091,12 @@
 
   :deep(.v-select .v-list-item:hover) {
     background-color: #f8f9fa !important;
-    color: #202887 !important;
+    color: #1976d2 !important;
   }
 
   :deep(.v-select .v-list-item--active) {
     background-color: #e3f2fd !important;
-    color: #202887 !important;
+    color: #1976d2 !important;
     font-weight: 600 !important;
   }
 
@@ -988,13 +1127,169 @@
 
   :deep(.v-overlay__content .v-list-item:hover) {
     background-color: #f8f9fa !important;
-    color: #202887 !important;
+    color: #1976d2 !important;
   }
 
   :deep(.v-overlay__content .v-list-item--active) {
     background-color: #e3f2fd !important;
-    color: #202887 !important;
+    color: #1976d2 !important;
     font-weight: 600 !important;
+  }
+
+  /* Light Mode Textarea Styling */
+  :deep(.v-textarea) {
+    background-color: #ffffff !important;
+  }
+
+  :deep(.v-textarea .v-field) {
+    background-color: #ffffff !important;
+    border-radius: 8px !important;
+  }
+
+  :deep(.v-textarea .v-field__input) {
+    color: #2c3e50 !important;
+  }
+
+  :deep(.v-textarea .v-field__label) {
+    color: #6c757d !important;
+  }
+
+  :deep(.v-textarea .v-field--focused .v-field__label) {
+    color: #1976d2 !important;
+  }
+
+  :deep(.v-textarea .v-field__outline) {
+    color: #dee2e6 !important;
+  }
+
+  :deep(.v-textarea .v-field--focused .v-field__outline) {
+    color: #1976d2 !important;
+  }
+
+  /* Light Mode Button Styling */
+  :deep(.v-btn) {
+    color: inherit !important;
+  }
+
+  :deep(.v-btn--variant-text) {
+    color: #6c757d !important;
+  }
+
+  :deep(.v-btn--variant-text:hover) {
+    color: #1976d2 !important;
+    background-color: #f8f9fa !important;
+  }
+
+  /* Modal Dialog Styling */
+  :deep(.v-dialog .v-card) {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+  }
+
+  :deep(.v-dialog .v-card-title) {
+    color: inherit !important;
+  }
+
+  :deep(.v-dialog .v-card-text) {
+    color: #2c3e50 !important;
+  }
+
+  :deep(.v-dialog .v-card-actions) {
+    background-color: #ffffff !important;
+  }
+
+  /* Snackbar Styling */
+  :deep(.v-snackbar) {
+    color: #ffffff !important;
+  }
+
+  :deep(.v-snackbar .v-snackbar__wrapper) {
+    color: #ffffff !important;
+  }
+
+  /* Progress Bar Styling */
+  :deep(.v-progress-circular) {
+    color: #1976d2 !important;
+  }
+
+  /* List Item Styling */
+  :deep(.v-list-item) {
+    color: #2c3e50 !important;
+  }
+
+  :deep(.v-list-item:hover) {
+    background-color: #f8f9fa !important;
+  }
+
+  :deep(.v-list-item-title) {
+    color: #2c3e50 !important;
+  }
+
+  :deep(.v-list-item-subtitle) {
+    color: #6c757d !important;
+  }
+
+  /* Menu Styling */
+  :deep(.v-menu .v-list) {
+    background-color: #ffffff !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Chip Styling */
+  :deep(.v-chip) {
+    color: inherit !important;
+  }
+
+  :deep(.v-chip--variant-tonal) {
+    background-color: rgba(25, 118, 210, 0.12) !important;
+    color: #1976d2 !important;
+  }
+
+  :deep(.v-chip--variant-outlined) {
+    border-color: #1976d2 !important;
+    color: #1976d2 !important;
+  }
+
+  /* Data Table Styling */
+  .files-data-table {
+    background-color: #ffffff !important;
+  }
+
+  .files-data-table :deep(.v-data-table__wrapper) {
+    background-color: #ffffff !important;
+  }
+
+  .files-data-table :deep(.v-table) {
+    background-color: #ffffff !important;
+  }
+
+  .files-data-table :deep(.v-table .v-table__wrapper > table) {
+    background-color: #ffffff !important;
+  }
+
+  .files-data-table :deep(.v-table .v-table__wrapper > table > thead > tr > th) {
+    background-color: #f8f9fa !important;
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+  }
+
+  .files-data-table :deep(.v-table .v-table__wrapper > table > tbody > tr > td) {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+  }
+
+  .files-data-table :deep(.v-table .v-table__wrapper > table > tbody > tr:hover > td) {
+    background-color: #f8f9fa !important;
+  }
+
+  .files-data-table :deep(.v-data-table-footer) {
+    background-color: #ffffff !important;
+    color: #2c3e50 !important;
+    border-top: 1px solid #dee2e6 !important;
   }
 
   /* Responsive adjustments */

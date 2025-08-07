@@ -103,8 +103,8 @@
       <v-divider color="white" class="custom-divider" />
       <v-list-item class="pa-4">
         <template #prepend>
-          <v-avatar size="36" color="white">
-            <v-icon color="primary">mdi-account</v-icon>
+          <v-avatar size="36" color="primary">
+            <v-icon color="surface">mdi-account</v-icon>
           </v-avatar>
         </template>
 
@@ -176,7 +176,7 @@
 
   .sidebar-logo {
     flex-shrink: 0;
-    background-color: rgb(var(--v-theme-primary));
+    background-color: surface;
     padding: 16px 0;
   }
 
@@ -219,7 +219,7 @@
 
   .sidebar-footer {
     flex-shrink: 0;
-    background-color: rgb(var(--v-theme-primary));
+    background-color: surface;
   }
 
   /* Custom divider styling */
