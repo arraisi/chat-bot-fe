@@ -25,12 +25,12 @@ export default createVuetify({
           info: '#2196F3',
           success: '#4CAF50',
           warning: '#FFC107',
-          background: '#FFFFFF', // White background
-          surface: '#202887', // Secondary color for surfaces (sidebar, app bar)
-          'on-primary': '#FFFFFF', // Secondary color text on white primary background
-          'on-secondary': '#FFFFFF', // White text on secondary background
-          'on-surface': '#FFFFFF', // White text on surface (sidebar)
-          'on-background': '#202887', // Smooth black text on white background
+          background: '#202887', // White background
+          surface: '#FFFFFF', // Secondary color for surfaces (sidebar, app bar)
+          'on-primary': '#1a1a1a', // Secondary color text on white primary background
+          'on-secondary': '#1a1a1a', // White text on secondary background
+          'on-surface': '#1a1a1a', // White text on surface (sidebar)
+          'on-background': '#1a1a1a', // Smooth black text on white background
         },
       },
     },

@@ -24,7 +24,7 @@
               <template #prepend>
                 <v-icon color="#202887" class="me-3">mdi-shield-account</v-icon>
               </template>
-              <v-list-item-title class="authority-option-title">{{ item.title }}</v-list-item-title>
+              <!-- <v-list-item-title class="authority-option-title">{{ item.title }}</v-list-item-title> -->
               <v-list-item-subtitle class="authority-option-description">{{
                 item.raw.description
               }}</v-list-item-subtitle>

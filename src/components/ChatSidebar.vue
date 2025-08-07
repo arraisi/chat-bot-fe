@@ -4,7 +4,7 @@
     <div class="sidebar-logo">
       <v-list-item class="pa-4">
         <div class="text-center w-100">
-          <img src="../assets/peruri_text_logo.png" alt="Company Logo" class="company-logo" />
+          <h1 class="aiva-logo-text">AIVA</h1>
         </div>
       </v-list-item>
     </div>
@@ -104,7 +104,7 @@
       <v-list-item class="pa-4">
         <template #prepend>
           <v-avatar size="36" color="primary">
-            <v-icon color="surface">mdi-account</v-icon>
+            <v-icon color="background">mdi-account</v-icon>
           </v-avatar>
         </template>
 
@@ -171,12 +171,12 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: rgb(var(--v-theme-surface));
+    background-color: rgb(var(--v-theme-background));
   }
 
   .sidebar-logo {
     flex-shrink: 0;
-    background-color: surface;
+    background-color: rgb(var(--v-theme-background));
     padding: 16px 0;
   }
 
@@ -188,9 +188,18 @@
     object-fit: contain;
   }
 
+  .aiva-logo-text {
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
   .sidebar-header {
     flex-shrink: 0;
-    background-color: rgb(var(--v-theme-surface));
+    background-color: rgb(var(--v-theme-background));
   }
 
   .sidebar-content {
@@ -219,7 +228,7 @@
 
   .sidebar-footer {
     flex-shrink: 0;
-    background-color: surface;
+    background-color: rgb(var(--v-theme-background));
   }
 
   /* Custom divider styling */

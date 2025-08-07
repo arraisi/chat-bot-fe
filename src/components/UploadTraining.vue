@@ -1343,46 +1343,12 @@
 
   /* Data Table Light Theme Styling */
   .files-data-table {
-    background-color: #ffffff !important;
     border-radius: 12px !important;
     overflow: hidden !important;
     border: 1px solid #f1f3f4 !important;
   }
 
-  .files-data-table :deep(.v-data-table) {
-    background-color: #ffffff !important;
-    color: #2c3e50 !important;
-  }
-
-  .files-data-table :deep(.v-data-table__wrapper) {
-    background-color: #ffffff !important;
-    color: secondary !important;
-  }
-
-  .files-data-table :deep(.v-table) {
-    background-color: #ffffff !important;
-    color: #2c3e50 !important;
-  }
-
-  .files-data-table :deep(.v-table .v-table__wrapper) {
-    background-color: #ffffff !important;
-    color: secondary !important;
-  }
-
-  .files-data-table :deep(.v-table .v-table__wrapper > table) {
-    background-color: #ffffff !important;
-    color: secondary !important;
-  }
-
-  /* Table Header Styling */
-  .files-data-table :deep(.v-data-table-header) {
-    background-color: #f8f9fa !important;
-    color: secondary !important;
-  }
-
   .files-data-table :deep(.v-data-table-header th) {
-    background-color: #f8f9fa !important;
-    color: #2c3e50 !important;
     font-weight: 600 !important;
     border-bottom: 2px solid #dee2e6 !important;
     font-size: 1rem !important;
@@ -1390,19 +1356,7 @@
     text-transform: uppercase !important;
   }
 
-  .files-data-table :deep(.v-table .v-table__wrapper > table > thead) {
-    background-color: #f8f9fa !important;
-    color: secondary !important;
-  }
-
-  .files-data-table :deep(.v-table .v-table__wrapper > table > thead > tr) {
-    background-color: #f8f9fa !important;
-    color: secondary !important;
-  }
-
   .files-data-table :deep(.v-table .v-table__wrapper > table > thead > tr > th) {
-    background-color: #f8f9fa !important;
-    color: #2c3e50 !important;
     font-weight: 600 !important;
     border-bottom: 2px solid #dee2e6 !important;
     font-size: 1rem !important;
@@ -1411,8 +1365,6 @@
   }
 
   .files-data-table :deep(.v-data-table__th) {
-    background-color: #f8f9fa !important;
-    color: #2c3e50 !important;
     font-weight: 600 !important;
     border-bottom: 2px solid #dee2e6 !important;
     font-size: 1rem !important;
@@ -1421,46 +1373,18 @@
   }
 
   /* Table Body Styling */
-  .files-data-table :deep(.v-table .v-table__wrapper > table > tbody) {
-    background-color: #ffffff !important;
-    color: secondary !important;
-  }
-
   .files-data-table :deep(.v-table .v-table__wrapper > table > tbody > tr) {
-    background-color: #ffffff !important;
     transition: background-color 0.2s ease !important;
-    color: secondary !important;
-  }
-
-  .files-data-table :deep(.v-table .v-table__wrapper > table > tbody > tr:hover) {
-    background-color: #f8f9fa !important;
-    color: secondary !important;
   }
 
   .files-data-table :deep(.v-table .v-table__wrapper > table > tbody > tr > td) {
-    background-color: inherit !important;
-    color: #2c3e50 !important;
     border-bottom: 1px solid #f1f3f4 !important;
     padding: 12px 16px !important;
   }
 
   /* Table Footer Styling */
   .files-data-table :deep(.v-data-table-footer) {
-    background-color: #ffffff !important;
-    color: #2c3e50 !important;
     border-top: 1px solid #dee2e6 !important;
-  }
-
-  .files-data-table :deep(.v-data-table-footer .v-data-table-footer__items-per-page) {
-    color: #2c3e50 !important;
-  }
-
-  .files-data-table :deep(.v-data-table-footer .v-data-table-footer__pagination) {
-    color: #2c3e50 !important;
-  }
-
-  .files-data-table :deep(.v-data-table-footer .v-btn) {
-    color: #2c3e50 !important;
   }
 
   /* Additional Header Text Visibility Fixes */
