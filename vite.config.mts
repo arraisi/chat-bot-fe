@@ -69,6 +69,12 @@ export default defineConfig({
     hmr: {
       overlay: false, // Disable error overlay to prevent reload loops
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     rollupOptions: {

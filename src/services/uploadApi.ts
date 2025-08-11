@@ -1,107 +1,33 @@
-import type { Authority, UploadedFile, UploadFileResponse } from '../types/chat';
+import axios from 'axios';
+import type { Authority, UploadedFile, UploadedFilesResponse, UploadFileResponse } from '../types/chat';
 
-// Mock API service for file uploads
-// In a real implementation, these would connect to your backend
+// Create axios instance for upload API
+const uploadApi = axios.create({
+  baseURL: process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000/api',
+  timeout: 30_000,
+  headers: {
+    Accept: 'application/json',
+  },
+});
 
-// Mock storage for uploaded files
-let uploadedFiles: UploadedFile[] = [
-  {
-    id: 'file_001',
-    name: 'employee_handbook_2024.pdf',
-    originalName: 'employee_handbook_2024.pdf',
-    size: 2048576,
-    type: 'application/pdf',
-    authority: 'SDM',
-    category: 'employee-handbook',
-    description: 'Updated employee handbook with new policies and procedures for 2024',
-    uploadedAt: new Date('2024-01-15T10:30:00Z'),
-    uploadedBy: 'john.doe@sdm.com',
-  },
-  {
-    id: 'file_002',
-    name: 'legal_compliance_guide.docx',
-    originalName: 'legal_compliance_guide.docx',
-    size: 1536000,
-    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    authority: 'HUKUM',
-    category: 'compliance',
-    description: 'Comprehensive legal compliance guide for corporate governance',
-    uploadedAt: new Date('2024-01-20T14:15:00Z'),
-    uploadedBy: 'sarah.legal@hukum.com',
-  },
-  {
-    id: 'file_003',
-    name: 'training_materials_2024.xlsx',
-    originalName: 'training_materials_2024.xlsx',
-    size: 512000,
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    authority: 'SDM',
-    category: 'general',
-    description: 'Annual training schedule and materials for employee development',
-    uploadedAt: new Date('2024-01-25T09:45:00Z'),
-    uploadedBy: 'maria.hr@sdm.com',
-  },
-  {
-    id: 'file_004',
-    name: 'contract_templates.zip',
-    originalName: 'contract_templates.zip',
-    size: 3072000,
-    type: 'application/zip',
-    authority: 'HUKUM',
-    category: 'contracts',
-    description: 'Standard contract templates for various business agreements',
-    uploadedAt: new Date('2024-02-01T16:20:00Z'),
-    uploadedBy: 'ahmad.law@hukum.com',
-  },
-  {
-    id: 'file_005',
-    name: 'performance_review_guidelines.pdf',
-    originalName: 'performance_review_guidelines.pdf',
-    size: 1024000,
-    type: 'application/pdf',
-    authority: 'SDM',
-    category: 'performance',
-    description: 'Guidelines and templates for annual performance reviews',
-    uploadedAt: new Date('2024-02-05T11:30:00Z'),
-    uploadedBy: 'lisa.hr@sdm.com',
-  },
-  {
-    id: 'file_006',
-    name: 'regulatory_requirements.txt',
-    originalName: 'regulatory_requirements.txt',
-    size: 256000,
-    type: 'text/plain',
-    authority: 'HUKUM',
-    category: 'compliance',
-    description: 'Updated regulatory requirements and compliance checklist',
-    uploadedAt: new Date('2024-02-10T13:45:00Z'),
-    uploadedBy: 'david.compliance@hukum.com',
-  },
-  {
-    id: 'file_007',
-    name: 'recruitment_policy_2024.md',
-    originalName: 'recruitment_policy_2024.md',
-    size: 128000,
-    type: 'text/markdown',
-    authority: 'SDM',
-    category: 'recruitment',
-    description: 'Updated recruitment and hiring policies for 2024',
-    uploadedAt: new Date('2024-02-12T08:15:00Z'),
-    uploadedBy: 'tom.recruiter@sdm.com',
-  },
-  {
-    id: 'file_008',
-    name: 'intellectual_property_guide.pdf',
-    originalName: 'intellectual_property_guide.pdf',
-    size: 3584000,
-    type: 'application/pdf',
-    authority: 'HUKUM',
-    category: 'legal-policies',
-    description: 'Comprehensive guide on intellectual property rights and protection',
-    uploadedAt: new Date('2024-02-15T15:30:00Z'),
-    uploadedBy: 'nina.ip@hukum.com',
-  },
-];
+// Add request interceptor to include auth token if needed
+uploadApi.interceptors.request.use(config => {
+  // Add your auth token here if needed
+  // const token = localStorage.getItem('auth-token')
+  // if (token) {
+  //   config.headers.Authorization = `Bearer ${token}`
+  // }
+  return config;
+});
+
+// Add response interceptor for error handling
+uploadApi.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('Upload API Error:', error);
+    return Promise.reject(error);
+  }
+);
 
 /**
  * Upload a file for AI training
@@ -117,35 +43,29 @@ export const uploadFileForTraining = async (
   category: string,
   description?: string
 ): Promise<UploadFileResponse> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('authority', authority);
+    formData.append('category', category);
+    if (description) {
+      formData.append('description', description);
+    }
 
-  // Create new file entry
-  const newFile: UploadedFile = {
-    id: `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    name: file.name,
-    originalName: file.name,
-    size: file.size,
-    type: file.type,
-    authority: authority,
-    category: category,
-    description: description,
-    uploadedAt: new Date(),
-    uploadedBy: 'current_user@example.com', // In real app, get from auth context
-  };
+    const response = await uploadApi.post<UploadFileResponse>('/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-  // Add to mock storage
-  uploadedFiles.push(newFile);
-
-  // Mock response
-  return {
-    id: String(newFile.id),
-    name: file.name,
-    size: file.size,
-    uploadedAt: newFile.uploadedAt instanceof Date ? newFile.uploadedAt.toISOString() : newFile.uploadedAt,
-    success: true,
-    message: 'File uploaded successfully',
-  };
+    return response.data;
+  } catch (error) {
+    console.error('File upload error:', error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(`Upload failed: ${error.response?.statusText || error.message}`);
+    }
+    throw error;
+  }
 };
 
 /**
@@ -154,16 +74,31 @@ export const uploadFileForTraining = async (
  * @returns Promise<UploadedFile[]>
  */
 export const getUploadedFiles = async (authority?: Authority | null): Promise<UploadedFile[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  try {
+    const response = await uploadApi.get<UploadedFilesResponse>('/uploaded-files');
 
-  // Filter files by authority if specified
-  if (authority && authority !== 'ALL') {
-    return uploadedFiles.filter(file => file.authority === authority);
+    let files = response.data.data;
+
+    // Filter files by authority if specified
+    if (authority && authority !== 'ALL') {
+      files = files.filter(file => file.authority === authority);
+    }
+
+    // Transform the data to match frontend expectations
+    return files.map(file => ({
+      ...file,
+      name: file.filename,
+      originalName: file.filename,
+      uploadedAt: file.created_at,
+      uploadedBy: 'user', // Default value since API doesn't provide this
+    }));
+  } catch (error) {
+    console.error('Error fetching uploaded files:', error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(`Failed to fetch files: ${error.response?.statusText || error.message}`);
+    }
+    throw error;
   }
-
-  // Return all files if no authority filter or 'ALL' is specified
-  return [...uploadedFiles];
 };
 
 /**
@@ -171,17 +106,16 @@ export const getUploadedFiles = async (authority?: Authority | null): Promise<Up
  * @param fileId - The ID of the file to delete
  * @returns Promise<void>
  */
-export const deleteUploadedFile = async (fileId: string): Promise<void> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  // Remove file from mock storage
-  const fileIndex = uploadedFiles.findIndex(file => file.id === fileId);
-  if (fileIndex !== -1) {
-    uploadedFiles.splice(fileIndex, 1);
+export const deleteUploadedFile = async (fileId: string | number): Promise<void> => {
+  try {
+    await uploadApi.delete(`/uploaded-files/${fileId}`);
     console.log(`Deleted file with ID: ${fileId}`);
-  } else {
-    console.log(`File with ID: ${fileId} not found`);
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(`Failed to delete file: ${error.response?.statusText || error.message}`);
+    }
+    throw error;
   }
 };
 
@@ -191,33 +125,29 @@ export const deleteUploadedFile = async (fileId: string): Promise<void> => {
  * @param fileName - The original filename for the download
  * @returns Promise<void>
  */
-export const downloadUploadedFile = async (fileId: string, fileName: string): Promise<void> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+export const downloadUploadedFile = async (fileId: string | number, fileName: string): Promise<void> => {
+  try {
+    const response = await uploadApi.get(`/uploaded-files/${fileId}/download`, {
+      responseType: 'blob',
+    });
 
-  // Find the file in mock storage
-  const file = uploadedFiles.find(f => f.id === fileId);
-  if (!file) {
-    throw new Error(`File with ID: ${fileId} not found`);
+    // Create a download link
+    const blob = new Blob([response.data]);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log(`Downloaded file: ${fileName} (ID: ${fileId})`);
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(`Failed to download file: ${error.response?.statusText || error.message}`);
+    }
+    throw error;
   }
-
-  // Mock implementation - create a dummy download
-  console.log(`Downloading file: ${fileName} (ID: ${fileId})`);
-
-  // In a real implementation, you would:
-  // 1. Fetch the file blob from your backend
-  // 2. Create a download link
-  // 3. Trigger the download
-
-  // For demo purposes, we'll create a dummy download link
-  const dummyContent = `This is a mock download for ${fileName}.\nFile ID: ${fileId}\nSize: ${file.size} bytes\nAuthority: ${file.authority}`;
-  const blob = new Blob([dummyContent], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };

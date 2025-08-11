@@ -32,16 +32,26 @@ export interface ChatBotRequest {
 
 export interface UploadedFile {
   id: string | number;
-  name: string;
-  originalName: string;
+  name?: string;
+  originalName?: string;
+  filename: string;
+  path: string;
   size: number;
-  type: string;
+  type?: string;
   authority: Authority;
   category?: string;
-  filename?: string;
   description?: string;
-  uploadedAt: Date | string;
-  uploadedBy: string;
+  uploadedAt?: Date | string;
+  uploadedBy?: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface UploadedFilesResponse {
+  draw: number;
+  recordsTotal: number;
+  recordsFiltered: number;
+  data: UploadedFile[];
 }
 
 export interface UploadFileRequest {

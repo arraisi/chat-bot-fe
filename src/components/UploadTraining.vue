@@ -687,41 +687,14 @@
   };
 
   // Initialize
-  onMounted(() => {
+  onMounted(async () => {
     // Set default target authority for SDM and HUKUM users
     if (userAuthority.value === 'SDM' || userAuthority.value === 'HUKUM') {
       modalSelectedAuthority.value = userAuthority.value;
     }
 
-    // Load sample data
-    uploadedFiles.value = [
-      {
-        id: 1,
-        authority: 'SDM',
-        category: 'performance',
-        filename: 'test.pdf',
-        name: 'test.pdf',
-        originalName: 'test.pdf',
-        size: 1024000,
-        type: 'application/pdf',
-        description: 'Sample performance document',
-        uploadedAt: new Date().toISOString(),
-        uploadedBy: 'admin',
-      },
-      {
-        id: 2,
-        authority: 'HUKUM',
-        category: 'compliance',
-        filename: 'legal-doc.docx',
-        name: 'legal-doc.docx',
-        originalName: 'legal-doc.docx',
-        size: 512000,
-        type: 'application/msword',
-        description: 'Legal compliance document',
-        uploadedAt: new Date().toISOString(),
-        uploadedBy: 'legal-team',
-      },
-    ];
+    // Load files from API on component mount
+    await refreshFilesList();
   });
 </script>
 
