@@ -2,8 +2,13 @@ import axios from 'axios';
 import type { Authority, UploadedFile, UploadedFilesResponse, UploadFileResponse } from '../types/chat';
 
 // Create axios instance for upload API
+// Use VITE_API_BASE_URL or fallback to '/api' for production and 'http://localhost:8000/api' for development
+const apiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.MODE === 'production' ? '/api' : 'http://localhost:8000/api');
+
 const uploadApi = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000/api',
+  baseURL: apiBaseUrl,
   timeout: 30_000,
   headers: {
     Accept: 'application/json',

@@ -81,11 +81,11 @@
                   <template #item.filename="{ item }">
                     <div class="d-flex align-center">
                       <v-icon
-                        :color="getFileIconColor(getFileTypeFromName(item.filename || item.name))"
+                        :color="getFileIconColor(getFileTypeFromName(item.filename || item.name || ''))"
                         class="me-2"
                         size="20"
                       >
-                        {{ getFileIcon(getFileTypeFromName(item.filename || item.name)) }}
+                        {{ getFileIcon(getFileTypeFromName(item.filename || item.name || '')) }}
                       </v-icon>
                       <span class="text-truncate" style="max-width: 200px; color: black">{{
                         item.filename || item.name
@@ -466,7 +466,7 @@
 
   const downloadFile = async (file: UploadedFile) => {
     try {
-      await downloadUploadedFile(String(file.id), file.filename || file.name);
+      await downloadUploadedFile(String(file.id), file.filename ?? file.name ?? 'download');
       showSuccess(`Downloaded ${file.filename || file.name}`);
     } catch (error) {
       console.error('Download error:', error);
