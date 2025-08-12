@@ -1,4 +1,4 @@
-import type { ChatBotResponse, ChatSession, Message } from '../types/chat';
+import type { Authority, ChatAPIResponse, ChatSession, Message } from '../types/chat';
 
 import { useLocalStorage } from '@vueuse/core';
 import { computed, ref } from 'vue';
@@ -114,7 +114,7 @@ export const useChat = () => {
   };
 
   // Send message to ChatBot API
-  const sendMessage = async (userMessage: string, apiEndpoint = '/api/chat') => {
+  const sendMessage = async (userMessage: string, category: string = 'general', authority: Authority = 'SDM') => {
     if (!currentSession.value) {
       createNewSession();
     }
@@ -129,21 +129,18 @@ export const useChat = () => {
       // Add typing indicator for assistant
       const assistantMessage = addMessage('', 'assistant', true);
 
-      // Prepare conversation history (last 10 messages for context)
-      const conversationHistory = currentSession
-        .value!.messages.slice(-10)
-        .filter(m => !m.isTyping)
-        .map(m => ({ content: m.content, role: m.role }));
+      console.log(`🚀 Sending message with authority: ${authority}, category: ${category}`);
 
-      // Make API call (replace with your actual ChatBot API)
-      const response = await fetch(apiEndpoint, {
+      // Make API call to your Laravel backend
+      const response = await fetch('http://localhost:8000/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: userMessage,
-          conversation_history: conversationHistory,
+          prompt: userMessage,
+          otoritas: authority,
+          kategori: category,
         }),
       });
 
@@ -151,14 +148,45 @@ export const useChat = () => {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
 
-      const data: ChatBotResponse = await response.json();
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+
+      const data: ChatAPIResponse = await response.json();
+
+      // Handle the API response structure
+      let assistantResponse = '';
+      if (data.success && data.response) {
+        assistantResponse = data.response;
+
+        // Log successful response metadata
+        console.log('✅ Chat API Response:', {
+          success: data.success,
+          message: data.message,
+          timestamp: data.timestamp,
+          rawData: data.raw_data,
+        });
+      } else {
+        throw new Error(`API request failed: ${data.message || 'Unknown error'}`);
+      }
 
       // Update assistant message with actual response
       if (assistantMessage) {
-        updateMessage(assistantMessage.id, data.content, false);
+        updateMessage(assistantMessage.id, assistantResponse, false);
       }
     } catch (error_) {
-      error.value = error_ instanceof Error ? error_.message : 'An error occurred';
+      console.error('Chat API Error:', error_);
+
+      // Provide user-friendly error messages
+      let errorMessage = 'An error occurred while processing your message.';
+
+      if (error_ instanceof TypeError && error_.message.includes('fetch')) {
+        errorMessage =
+          'Unable to connect to the chat service. Please check if the backend server is running on http://localhost:8000';
+      } else if (error_ instanceof Error) {
+        errorMessage = error_.message;
+      }
+
+      error.value = errorMessage;
 
       // Remove typing indicator on error
       if (currentSession.value) {
@@ -167,6 +195,11 @@ export const useChat = () => {
           currentSession.value.messages.pop();
         }
       }
+
+      // Add error message to chat
+      addMessage(`❌ Error: ${errorMessage}`, 'assistant');
+
+      throw error_; // Re-throw for component-level handling
     } finally {
       isLoading.value = false;
     }

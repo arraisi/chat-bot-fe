@@ -25,6 +25,19 @@ export interface ChatBotResponse {
   };
 }
 
+export interface ChatAPIResponse {
+  success: boolean;
+  message: string;
+  response: string;
+  raw_data: {
+    prompt: string;
+    otoritas: string;
+    kategori: string;
+    mock?: boolean;
+  };
+  timestamp: string;
+}
+
 export interface ChatBotRequest {
   message: string;
   conversation_history?: Message[];

@@ -247,7 +247,8 @@
     createNewSession,
     switchToSession,
     deleteSession,
-    sendMessageMock, // Change to sendMessage when you have real API
+    sendMessage, // Now using real API
+    sendMessageMock, // Keep for fallback
     initialize,
   } = useChat();
 
@@ -611,32 +612,50 @@
 
   // Handle sending messages
   const handleSendMessage = async (message: string, category?: string) => {
-    if (category) {
-      console.log(`Sending message in category: ${category}`);
-      // You can modify the message to include category context
-      // For example: const contextualMessage = `[Category: ${category}] ${message}`;
-    }
-    await sendMessageMock(message); // Change to sendMessage when you have real API
-    scrollToBottom();
-  };
+    try {
+      // Use provided category or default to 'general'
+      const messageCategory = category || 'general';
 
-  // Handle suggestion category selection
+      console.log(`Sending message with category: ${messageCategory}`);
+      console.log(`Selected authority: ${selectedAuthority.value}`);
+
+      // Use real API with selectedAuthority from ChatInterface
+      await sendMessage(message, messageCategory, selectedAuthority.value);
+      scrollToBottom();
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Fallback to mock if real API fails
+      console.log('Falling back to mock API due to error');
+      await sendMessageMock(message);
+      scrollToBottom();
+    }
+  }; // Handle suggestion category selection
   const selectSuggestionCategory = (category: CategoryOption) => {
     selectedSuggestionCategory.value = category;
   };
 
   // Handle suggestion question click
   const handleSuggestionClick = async (suggestion: string, categoryValue: string) => {
-    // First set the category in the input
-    createNewSession();
-    // Wait for the next tick to ensure the session is created
-    await nextTick();
-    // Then send the suggestion as a message
-    await sendMessageMock(suggestion);
-    scrollToBottom();
-  };
+    try {
+      // First set the category in the input
+      createNewSession();
+      // Wait for the next tick to ensure the session is created
+      await nextTick();
 
-  // Account menu handlers
+      console.log(`Sending suggestion with category: ${categoryValue}`);
+      console.log(`Selected authority: ${selectedAuthority.value}`);
+
+      // Use real API for suggestions with selectedAuthority from ChatInterface
+      await sendMessage(suggestion, categoryValue, selectedAuthority.value);
+      scrollToBottom();
+    } catch (error) {
+      console.error('Error sending suggestion:', error);
+      // Fallback to mock if real API fails
+      console.log('Falling back to mock API for suggestion due to error');
+      await sendMessageMock(suggestion);
+      scrollToBottom();
+    }
+  }; // Account menu handlers
   const handleToggleTheme = (theme: 'light' | 'dark') => {
     // Toggle between light and dark theme
     console.log(`Switching to ${theme} theme`);
