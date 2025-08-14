@@ -6,6 +6,9 @@ export interface Message {
   role: 'user' | 'assistant';
   timestamp: Date;
   isTyping?: boolean;
+  category?: string;
+  authority?: Authority;
+  metadata?: any;
 }
 
 export interface ChatSession {
@@ -14,6 +17,9 @@ export interface ChatSession {
   messages: Message[];
   createdAt: Date | string;
   updatedAt: Date | string;
+  authority?: Authority;
+  messageCount?: number;
+  lastActivityAt?: Date | string | null;
 }
 
 export interface ChatBotResponse {

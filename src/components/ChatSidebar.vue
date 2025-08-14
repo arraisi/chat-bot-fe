@@ -77,7 +77,15 @@
             </v-list-item-title>
 
             <v-list-item-subtitle class="text-caption text-white" style="opacity: 0.8">
-              {{ formatDate(session.updatedAt) }}
+              <div class="d-flex align-center justify-space-between">
+                <span>{{ formatDate(session.lastActivityAt || session.updatedAt) }}</span>
+                <div class="d-flex align-center gap-2">
+                  <v-chip v-if="session.authority" size="x-small" color="white" variant="outlined" class="text-white">
+                    {{ session.authority }}
+                  </v-chip>
+                  <span v-if="session.messageCount" class="text-caption"> {{ session.messageCount }} msgs </span>
+                </div>
+              </div>
             </v-list-item-subtitle>
 
             <template #append>

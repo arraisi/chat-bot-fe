@@ -1,14 +1,22 @@
-import type { Authority, ChatAPIResponse, ChatSession, Message } from '../types/chat';
+import {
+  createChatSession,
+  deleteChatSession,
+  getChatSession,
+  getChatSessions,
+  sendMessageToSession,
+  updateChatSession,
+} from '../services/chatSessionApi';
+import type { Authority, ChatSession, Message } from '../types/chat';
 
-import { useLocalStorage } from '@vueuse/core';
 import { computed, ref } from 'vue';
 
 export const useChat = () => {
-  // Store chat sessions in localStorage
-  const chatSessions = useLocalStorage<ChatSession[]>('chat-sessions', []);
+  // Store chat sessions in localStorage with API sync
+  const chatSessions = ref<ChatSession[]>([]);
   const currentSessionId = ref<string | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const userId = ref<string>('default-user'); // You can integrate with auth later
 
   // Get current active session
   const currentSession = computed(() => {
@@ -20,6 +28,7 @@ export const useChat = () => {
 
   // Get current messages
   const messages = computed(() => {
+    console.log('Current messages:', currentSession.value?.messages);
     return currentSession.value?.messages || [];
   });
 
@@ -28,54 +37,136 @@ export const useChat = () => {
     return Date.now().toString(36) + Math.random().toString(36).slice(2);
   };
 
-  // Create new chat session
-  const createNewSession = () => {
-    const newSession: ChatSession = {
-      id: generateId(),
-      title: 'New Chat',
-      messages: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  // Load chat sessions from API
+  const loadChatSessions = async () => {
+    try {
+      isLoading.value = true;
+      error.value = null;
 
-    chatSessions.value.unshift(newSession);
-    currentSessionId.value = newSession.id;
-    return newSession;
+      const sessions = await getChatSessions(userId.value, 50);
+      chatSessions.value = sessions;
+
+      console.log('✅ Loaded chat sessions:', sessions.length);
+    } catch (err) {
+      console.error('❌ Failed to load chat sessions:', err);
+      error.value = err instanceof Error ? err.message : 'Failed to load chat sessions';
+    } finally {
+      isLoading.value = false;
+    }
   };
 
-  // Switch to existing session
-  const switchToSession = (sessionId: string) => {
-    currentSessionId.value = sessionId;
+  // Create new chat session
+  const createNewSession = async (authority: Authority = 'SDM') => {
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      const newSession = await createChatSession({
+        title: 'New Chat',
+        authority,
+        user_id: userId.value,
+      });
+
+      chatSessions.value.unshift(newSession);
+      currentSessionId.value = newSession.id;
+
+      console.log('✅ Created new session:', newSession.id);
+      return newSession;
+    } catch (err) {
+      console.error('❌ Failed to create session:', err);
+      error.value = err instanceof Error ? err.message : 'Failed to create session';
+
+      // Fallback to local session creation if API fails
+      const fallbackSession: ChatSession = {
+        id: generateId(),
+        title: 'New Chat (Offline)',
+        messages: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        authority,
+        messageCount: 0,
+        lastActivityAt: new Date(),
+      };
+
+      chatSessions.value.unshift(fallbackSession);
+      currentSessionId.value = fallbackSession.id;
+      return fallbackSession;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // Switch to existing session and load full details
+  const switchToSession = async (sessionId: string) => {
+    try {
+      currentSessionId.value = sessionId;
+
+      // Check if we need to load session details
+      const existingSession = chatSessions.value.find(s => s.id === sessionId);
+      if (!existingSession || !existingSession.messages || existingSession.messages.length === 0) {
+        // Load full session with messages from API
+        const fullSession = await getChatSession(sessionId);
+
+        // Update the session in our local array
+        const index = chatSessions.value.findIndex(s => s.id === sessionId);
+        if (index !== -1) {
+          chatSessions.value[index] = fullSession;
+        }
+
+        console.log('✅ Loaded full session:', sessionId, 'messages:', fullSession.messages.length);
+      }
+    } catch (err) {
+      console.error('❌ Failed to switch to session:', err);
+      error.value = err instanceof Error ? err.message : 'Failed to load session';
+    }
   };
 
   // Delete a session
-  const deleteSession = (sessionId: string) => {
-    const index = chatSessions.value.findIndex(session => session.id === sessionId);
-    if (index !== -1) {
-      chatSessions.value.splice(index, 1);
+  const deleteSession = async (sessionId: string) => {
+    try {
+      await deleteChatSession(sessionId);
+
+      const index = chatSessions.value.findIndex(session => session.id === sessionId);
+      if (index !== -1) {
+        chatSessions.value.splice(index, 1);
+      }
 
       // If we deleted the current session, switch to the first available or create new
       if (currentSessionId.value === sessionId) {
         if (chatSessions.value.length > 0) {
-          currentSessionId.value = chatSessions.value[0].id;
+          await switchToSession(chatSessions.value[0].id);
         } else {
-          createNewSession();
+          await createNewSession();
         }
       }
+
+      console.log('✅ Deleted session:', sessionId);
+    } catch (err) {
+      console.error('❌ Failed to delete session:', err);
+      error.value = err instanceof Error ? err.message : 'Failed to delete session';
     }
   };
 
-  // Update session title based on first message
-  const updateSessionTitle = (sessionId: string, title: string) => {
-    const session = chatSessions.value.find(s => s.id === sessionId);
-    if (session) {
-      session.title = title.slice(0, 50); // Limit title length
-      session.updatedAt = new Date();
+  // Update session title
+  const updateSessionTitle = async (sessionId: string, title: string) => {
+    try {
+      await updateChatSession(sessionId, { title: title.slice(0, 50) });
+
+      const session = chatSessions.value.find(s => s.id === sessionId);
+      if (session) {
+        session.title = title.slice(0, 50);
+        session.updatedAt = new Date();
+      }
+
+      console.log('✅ Updated session title:', sessionId);
+    } catch (err) {
+      console.error('❌ Failed to update session title:', err);
+      // Don't show error to user for title updates
     }
   };
 
-  // Add message to current session
-  const addMessage = (content: string, role: 'user' | 'assistant', isTyping = false) => {
+  // Add message to current session (local helper)
+  const addMessageLocal = (content: string, role: 'user' | 'assistant', isTyping = false) => {
     if (!currentSession.value) {
       return null;
     }
@@ -90,11 +181,7 @@ export const useChat = () => {
 
     currentSession.value.messages.push(message);
     currentSession.value.updatedAt = new Date();
-
-    // Update session title if this is the first user message
-    if (role === 'user' && currentSession.value.messages.filter(m => m.role === 'user').length === 1) {
-      updateSessionTitle(currentSession.value.id, content);
-    }
+    currentSession.value.messageCount = currentSession.value.messages.length;
 
     return message;
   };
@@ -113,68 +200,57 @@ export const useChat = () => {
     }
   };
 
-  // Send message to ChatBot API
+  // Send message using real Chat Session API
   const sendMessage = async (userMessage: string, category: string = 'general', authority: Authority = 'SDM') => {
     if (!currentSession.value) {
-      createNewSession();
+      await createNewSession(authority);
+    }
+
+    if (!currentSession.value) {
+      throw new Error('Failed to create or find current session');
     }
 
     try {
       isLoading.value = true;
       error.value = null;
 
-      // Add user message
-      addMessage(userMessage, 'user');
+      console.log(
+        `🚀 Sending message to session ${currentSession.value.id} with authority: ${authority}, category: ${category}`
+      );
 
-      // Add typing indicator for assistant
-      const assistantMessage = addMessage('', 'assistant', true);
-
-      console.log(`🚀 Sending message with authority: ${authority}, category: ${category}`);
-
-      // Make API call to your Laravel backend
-      const response = await fetch('http://localhost:8000/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // Send message to backend API
+      const result = await sendMessageToSession(currentSession.value.id, {
+        content: userMessage,
+        category,
+        authority,
+        metadata: {
+          timestamp: new Date().toISOString(),
+          source: 'web',
         },
-        body: JSON.stringify({
-          prompt: userMessage,
-          otoritas: authority,
-          kategori: category,
-        }),
       });
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      // Add messages to local session
+      const userMsg = addMessageLocal(userMessage, 'user');
+      let assistantMsg = null;
+
+      if (result.assistantMessage) {
+        assistantMsg = addMessageLocal(result.assistantMessage.content, 'assistant');
       }
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-
-      const data: ChatAPIResponse = await response.json();
-
-      // Handle the API response structure
-      let assistantResponse = '';
-      if (data.success && data.response) {
-        assistantResponse = data.response;
-
-        // Log successful response metadata
-        console.log('✅ Chat API Response:', {
-          success: data.success,
-          message: data.message,
-          timestamp: data.timestamp,
-          rawData: data.raw_data,
-        });
-      } else {
-        throw new Error(`API request failed: ${data.message || 'Unknown error'}`);
+      // Update session title if this is the first user message
+      if (currentSession.value.messages.filter(m => m.role === 'user').length === 1) {
+        await updateSessionTitle(currentSession.value.id, userMessage);
       }
 
-      // Update assistant message with actual response
-      if (assistantMessage) {
-        updateMessage(assistantMessage.id, assistantResponse, false);
-      }
+      console.log('✅ Message sent successfully');
+
+      return {
+        userMessage: userMsg,
+        assistantMessage: assistantMsg,
+        botResponse: result.botResponse,
+      };
     } catch (error_) {
-      console.error('Chat API Error:', error_);
+      console.error('❌ Chat API Error:', error_);
 
       // Provide user-friendly error messages
       let errorMessage = 'An error occurred while processing your message.';
@@ -188,16 +264,8 @@ export const useChat = () => {
 
       error.value = errorMessage;
 
-      // Remove typing indicator on error
-      if (currentSession.value) {
-        const lastMessage = currentSession.value.messages[currentSession.value.messages.length - 1];
-        if (lastMessage?.isTyping) {
-          currentSession.value.messages.pop();
-        }
-      }
-
       // Add error message to chat
-      addMessage(`❌ Error: ${errorMessage}`, 'assistant');
+      addMessageLocal(`❌ Error: ${errorMessage}`, 'assistant');
 
       throw error_; // Re-throw for component-level handling
     } finally {
@@ -208,7 +276,7 @@ export const useChat = () => {
   // Mock API call for development (remove when you have real API)
   const sendMessageMock = async (userMessage: string) => {
     if (!currentSession.value) {
-      createNewSession();
+      await createNewSession();
     }
 
     try {
@@ -216,10 +284,10 @@ export const useChat = () => {
       error.value = null;
 
       // Add user message
-      addMessage(userMessage, 'user');
+      addMessageLocal(userMessage, 'user');
 
       // Add typing indicator
-      const assistantMessage = addMessage('', 'assistant', true);
+      const assistantMessage = addMessageLocal('', 'assistant', true);
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
@@ -246,19 +314,42 @@ export const useChat = () => {
     }
   };
 
-  // Initialize with a session if none exists
-  const initialize = () => {
-    if (chatSessions.value.length === 0 || !currentSessionId.value) {
-      createNewSession();
-    } else if (currentSessionId.value) {
-      // Ensure current session exists
-      const exists = chatSessions.value.find(s => s.id === currentSessionId.value);
-      if (!exists) {
-        currentSessionId.value = chatSessions.value[0]?.id || null;
-        if (!currentSessionId.value) {
-          createNewSession();
+  // Initialize by loading sessions from API
+  const initialize = async () => {
+    try {
+      await loadChatSessions();
+
+      // If no sessions or no current session, create a new one
+      if (chatSessions.value.length === 0) {
+        await createNewSession();
+      } else if (!currentSessionId.value) {
+        // Set the first session as current
+        currentSessionId.value = chatSessions.value[0].id;
+      } else {
+        // Ensure current session exists
+        const exists = chatSessions.value.find(s => s.id === currentSessionId.value);
+        if (!exists) {
+          currentSessionId.value = chatSessions.value[0]?.id || null;
+          if (!currentSessionId.value) {
+            await createNewSession();
+          }
         }
       }
+    } catch (err) {
+      console.error('❌ Failed to initialize chat:', err);
+      // Fallback to creating a local session
+      const fallbackSession: ChatSession = {
+        id: generateId(),
+        title: 'New Chat (Offline)',
+        messages: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        authority: 'SDM',
+        messageCount: 0,
+        lastActivityAt: new Date(),
+      };
+      chatSessions.value = [fallbackSession];
+      currentSessionId.value = fallbackSession.id;
     }
   };
 
@@ -270,15 +361,18 @@ export const useChat = () => {
     isLoading,
     error,
     currentSessionId,
+    userId,
 
     // Actions
+    loadChatSessions,
     createNewSession,
     switchToSession,
     deleteSession,
     sendMessage,
-    sendMessageMock, // Remove this when you have real API
-    addMessage,
+    sendMessageMock, // Keep for fallback
+    addMessage: addMessageLocal,
     updateMessage,
+    updateSessionTitle,
     initialize,
   };
 };

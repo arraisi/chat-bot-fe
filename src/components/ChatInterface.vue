@@ -118,7 +118,7 @@
         :chat-sessions="chatSessions"
         :current-session-id="currentSessionId"
         @delete-session="deleteSession"
-        @new-chat="createNewSession"
+        @new-chat="handleNewChat"
         @switch-session="switchToSession"
         @upload-file="handleUploadFile"
         @search-chat="handleSearchChat"
@@ -149,8 +149,68 @@
                       AI Virtual Assistant untuk informasi Peruri. Pilih kategori dan mulai percakapan!
                     </p>
 
-                    <!-- Category Selection -->
-                    <div v-if="!selectedSuggestionCategory" class="category-selection mb-6">
+                    <!-- Suggestion Questions (Auto-selected first category) -->
+                    <div v-if="selectedSuggestionCategory" class="suggestions-section">
+                      <div class="d-flex align-center justify-center mb-4">
+                        <v-btn icon size="small" variant="text" @click="selectedSuggestionCategory = null">
+                          <v-icon>mdi-arrow-left</v-icon>
+                        </v-btn>
+                        <h3 class="text-h6 mx-3">{{ selectedSuggestionCategory.label }}</h3>
+                        <v-spacer />
+                        <v-menu>
+                          <template #activator="{ props }">
+                            <v-btn variant="outlined" size="small" v-bind="props">
+                              <v-icon start>mdi-swap-horizontal</v-icon>
+                              Ganti Kategori
+                            </v-btn>
+                          </template>
+                          <v-list>
+                            <v-list-item
+                              v-for="category in filteredCategories"
+                              :key="category.value"
+                              @click="selectSuggestionCategory(category)"
+                            >
+                              <template #prepend>
+                                <v-icon>{{ category.icon }}</v-icon>
+                              </template>
+                              <v-list-item-title>{{ category.label }}</v-list-item-title>
+                              <v-list-item-subtitle>{{ category.description }}</v-list-item-subtitle>
+                            </v-list-item>
+                          </v-list>
+                        </v-menu>
+                      </div>
+
+                      <div class="suggestions-grid" :key="suggestionsKey">
+                        <v-card
+                          v-for="(suggestion, index) in getRandomSuggestions(selectedSuggestionCategory.suggestions)"
+                          :key="index"
+                          class="suggestion-card"
+                          hover
+                          @click="handleSuggestionClick(suggestion, selectedSuggestionCategory.value)"
+                        >
+                          <v-card-text class="pa-4">
+                            <div class="suggestion-text">{{ suggestion }}</div>
+                            <v-icon class="suggestion-icon" size="20">mdi-arrow-right</v-icon>
+                          </v-card-text>
+                        </v-card>
+                      </div>
+
+                      <!-- Show More Button (only if there are more than 4 suggestions) -->
+                      <div
+                        v-if="
+                          selectedSuggestionCategory.suggestions && selectedSuggestionCategory.suggestions.length > 4
+                        "
+                        class="text-center mt-4"
+                      >
+                        <v-btn variant="text" color="primary" size="small" @click="refreshSuggestions">
+                          <v-icon start>mdi-refresh</v-icon>
+                          Tampilkan Pertanyaan Lain
+                        </v-btn>
+                      </div>
+                    </div>
+
+                    <!-- Category Selection (Fallback - only shown when no category is selected) -->
+                    <div v-else class="category-selection mb-6">
                       <h3 class="text-h6 mb-4">Pilih Kategori untuk Melihat Pertanyaan Populer:</h3>
                       <div class="category-grid">
                         <v-card
@@ -164,31 +224,6 @@
                             <v-icon :icon="category.icon" size="40" color="primary" class="mb-2" />
                             <div class="category-title">{{ category.label }}</div>
                             <div class="category-desc">{{ category.description }}</div>
-                          </v-card-text>
-                        </v-card>
-                      </div>
-                    </div>
-
-                    <!-- Suggestion Questions -->
-                    <div v-else class="suggestions-section">
-                      <div class="d-flex align-center justify-center mb-4">
-                        <v-btn icon size="small" variant="text" @click="selectedSuggestionCategory = null">
-                          <v-icon>mdi-arrow-left</v-icon>
-                        </v-btn>
-                        <h3 class="text-h6 mx-3">{{ selectedSuggestionCategory.label }}</h3>
-                      </div>
-
-                      <div class="suggestions-grid">
-                        <v-card
-                          v-for="(suggestion, index) in selectedSuggestionCategory.suggestions"
-                          :key="index"
-                          class="suggestion-card"
-                          hover
-                          @click="handleSuggestionClick(suggestion, selectedSuggestionCategory.value)"
-                        >
-                          <v-card-text class="pa-4">
-                            <div class="suggestion-text">{{ suggestion }}</div>
-                            <v-icon class="suggestion-icon" size="20">mdi-arrow-right</v-icon>
                           </v-card-text>
                         </v-card>
                       </div>
@@ -321,6 +356,8 @@
   watch(userAuthority, newAuthority => {
     if (newAuthority && newAuthority !== selectedAuthority.value) {
       selectedAuthority.value = newAuthority;
+      // Auto-select first category when authority changes
+      autoSelectFirstCategory();
     }
   });
 
@@ -339,6 +376,9 @@
     // Don't change the actual user authority - just the selection for chat input categories
     selectedAuthority.value = newAuthority;
     console.log(`Authority selection changed to: ${newAuthority} (for category filtering only)`);
+
+    // Auto-select first category when authority changes
+    autoSelectFirstCategory();
   };
 
   const messagesEnd = ref<HTMLElement>();
@@ -346,6 +386,7 @@
   const accountMenuOpen = ref(false); // Account menu open state
   const showUploadView = ref(false); // Upload view state
   const selectedSuggestionCategory = ref<any>(null); // Selected category for suggestions
+  const suggestionsKey = ref(0); // Key to force re-render of suggestions
 
   // Interface for category options with suggestions
   interface CategoryOption {
@@ -589,6 +630,32 @@
   // Get filtered categories based on selected authority
   const filteredCategories = computed(() => getCategoriesWithSuggestions(selectedAuthority.value));
 
+  // Auto-select first category function
+  const autoSelectFirstCategory = () => {
+    const categories = filteredCategories.value;
+    if (categories.length > 0 && !selectedSuggestionCategory.value) {
+      selectedSuggestionCategory.value = categories[0];
+    }
+  };
+
+  // Get 4 random suggestions from the available suggestions
+  const getRandomSuggestions = (suggestions: string[] = []) => {
+    if (!suggestions || suggestions.length === 0) return [];
+
+    // If we have 4 or fewer suggestions, return all of them
+    if (suggestions.length <= 4) return suggestions;
+
+    // Use suggestionsKey to ensure different random selections on refresh
+    const seed = suggestionsKey.value;
+    const shuffled = [...suggestions].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 4);
+  };
+
+  // Refresh suggestions to show different random questions
+  const refreshSuggestions = () => {
+    suggestionsKey.value += 1; // This will trigger a re-render with new random suggestions
+  };
+
   // Computed style for flexible app bar
   const appBarStyle = computed(() => ({
     marginLeft: sidebarOpen.value ? '280px' : '0px',
@@ -608,6 +675,18 @@
     () => {
       scrollToBottom();
     }
+  );
+
+  // Watch for changes in filtered categories and auto-select first category
+  watch(
+    filteredCategories,
+    newCategories => {
+      // Auto-select first category when categories change and no category is currently selected
+      if (newCategories.length > 0 && !selectedSuggestionCategory.value) {
+        autoSelectFirstCategory();
+      }
+    },
+    { immediate: true }
   );
 
   // Handle sending messages
@@ -632,13 +711,14 @@
   }; // Handle suggestion category selection
   const selectSuggestionCategory = (category: CategoryOption) => {
     selectedSuggestionCategory.value = category;
+    suggestionsKey.value = 0; // Reset suggestions to show fresh random selection
   };
 
   // Handle suggestion question click
   const handleSuggestionClick = async (suggestion: string, categoryValue: string) => {
     try {
       // First set the category in the input
-      createNewSession();
+      await createNewSession(selectedAuthority.value);
       // Wait for the next tick to ensure the session is created
       await nextTick();
 
@@ -699,6 +779,10 @@
   };
 
   // Sidebar action handlers
+  const handleNewChat = async () => {
+    await createNewSession(selectedAuthority.value);
+  };
+
   const handleUploadFile = () => {
     // Toggle upload view instead of file picker
     showUploadView.value = true;
@@ -716,9 +800,11 @@
   };
 
   // Initialize the chat system
-  onMounted(() => {
-    initialize();
+  onMounted(async () => {
+    await initialize();
     scrollToBottom();
+    // Auto-select first category on mount
+    autoSelectFirstCategory();
   });
 </script>
 
@@ -819,10 +905,23 @@
     width: 100%;
   }
 
+  .suggestions-section .d-flex {
+    position: relative;
+  }
+
+  .suggestions-section .v-btn[variant='outlined'] {
+    border-color: #202887;
+    color: #202887;
+  }
+
+  .suggestions-section .v-btn[variant='outlined']:hover {
+    background-color: rgba(32, 40, 135, 0.05);
+  }
+
   .suggestions-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
     margin-top: 20px;
   }
 
@@ -869,6 +968,11 @@
       gap: 12px;
     }
 
+    .suggestions-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
     .category-card {
       margin: 0;
     }
@@ -880,6 +984,17 @@
 
     .suggestion-icon {
       right: 12px;
+    }
+  }
+
+  /* Tablet responsiveness */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .suggestions-grid {
+      gap: 14px;
+    }
+
+    .suggestion-text {
+      font-size: 13px;
     }
   }
 
