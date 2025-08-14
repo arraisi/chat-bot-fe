@@ -31,8 +31,8 @@ include:
 vite:build:production:
     image: private.nexus-regs.docker:8086/node:${NODE_VERSION}
     before_script:
-        - cp .docker/vite.config.mts vite.config.mts
-        - cp .docker/vue-config.js vue-config.js
+        - cp vite.config.mts vite.config.mts
+        - cp vue-config.js vue-config.js
     script:
         - cp ${VITE_ENV} .env.production
         #- apt-get -y update 
@@ -58,8 +58,8 @@ build:docker:
     variables:
         DOCKER_BUILD_ARGS: ""
         #DOCKER_HOST: unix:///var/run/docker.sock
-        PROJECT_GROUP_ID: "astina"
-        PROJECT_NAME: "astina-frontend"
+        PROJECT_GROUP_ID: "Peruri"
+        PROJECT_NAME: "front-end"
     rules:
       - if: $CI_COMMIT_TAG
         when: always
