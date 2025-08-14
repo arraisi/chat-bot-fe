@@ -31,8 +31,8 @@ include:
 vite:build:production:
     image: private.nexus-regs.docker:8086/node:${NODE_VERSION}
     before_script:
-        - cp .docker/vite.config.js vite.config.js
-        - cp .docker/vue.config.js vue.config.js
+        - cp .docker/vite.config.mts vite.config.mts
+        - cp .docker/vue-config.js vue-config.js
     script:
         - cp ${VITE_ENV} .env.production
         #- apt-get -y update 
