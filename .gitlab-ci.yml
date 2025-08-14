@@ -1,0 +1,103 @@
+stages:
+    - pre-build
+    - build
+    - deploy
+
+variables:
+    DOCKER_VERSION: "stable"
+    DOCKER_DIND_VERSION: "18.09-dind"
+    DOCKER_CONFIG_FILE: "--config .docker"
+    NODE_VERSION: "20.18.0-bullseye"
+
+default:
+    tags:
+        - docker
+
+cache:
+    paths:
+        - node_modules
+
+include:
+    - project: tabeldata.co.id/gitlab-cicd-templates
+      ref: main
+      file: build.docker.gitlab-ci.yml
+    - project: tabeldata.co.id/gitlab-cicd-templates
+      ref: main
+      file: build.angular.gitlab-ci.yml
+    - project: tabeldata.co.id/gitlab-cicd-templates
+      ref: main
+      file: trigger.deploy.gitlab-ci.yml
+
+vite:build:production:
+    image: private.nexus-regs.docker:8086/node:${NODE_VERSION}
+    before_script:
+        - cp .docker/vite.config.js vite.config.js
+        - cp .docker/vue.config.js vue.config.js
+    script:
+        - cp ${VITE_ENV} .env.production
+        #- apt-get -y update 
+        #- apt install -y build-essential
+        - npm install
+        - npm rebuild node-sass
+        - npm run build
+    artifacts:
+        name: $CI_PROJECT_NAME-$CI_COMMIT_SHORT_SHA
+        paths:
+            - dist/*
+    stage: build
+    rules:            
+      - if: $CI_COMMIT_TAG
+        when: always
+
+
+build:docker:
+    stage: build
+    extends: .build-docker
+    needs:
+        - vite:build:production
+    variables:
+        DOCKER_BUILD_ARGS: ""
+        #DOCKER_HOST: unix:///var/run/docker.sock
+        PROJECT_GROUP_ID: "astina"
+        PROJECT_NAME: "astina-frontend"
+    rules:
+      - if: $CI_COMMIT_TAG
+        when: always
+
+trigger:deploy:review:
+    extends: .trigger_pipeline
+    stage: deploy
+    needs:
+        - vite:build:production
+        - get-fact:project:info
+        - build:docker
+    rules:
+        - if: $CI_ENV_REVIEW_ENABLED == "true" && $CI_COMMIT_TAG =~ /-release/
+          when: always
+        - when: never
+
+trigger:deploy:dev:
+    extends: .trigger_pipeline
+    stage: deploy
+    variables:
+        CI_DEPLOYMENT_ENV: dev
+    needs:
+        - get-fact:project:info
+        - build:docker
+    rules:
+        - if: $CI_ENV_DEV_ENABLED == "true" && $CI_COMMIT_TAG =~ /-dev/
+          when: always
+        - when: never
+
+trigger:deploy:prod:
+    extends: .trigger_pipeline
+    stage: deploy
+    variables:
+        CI_DEPLOYMENT_ENV: prod
+    needs:
+        - get-fact:project:info
+        - build:docker
+    rules:
+        - if: $CI_ENV_PROD_ENABLED == "true" && $CI_COMMIT_TAG =~ /-prod/
+          when: manual
+        - when: never
