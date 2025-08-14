@@ -31,10 +31,10 @@ include:
 vite:build:production:
     image: private.nexus-regs.docker:8086/node:${NODE_VERSION}
     #before_script:
-        #- cp vite.config.mts vite.config.mts
-        #- cp vue-config.js vue-config.js
+        # - cp vite.config.mts vite.config.mts
+        # - cp vue-config.js vue-config.js
     script:
-        - cp ${VITE_ENV} .env.production
+        # - cp ${VITE_ENV} .env.production
         #- apt-get -y update 
         #- apt install -y build-essential
         - npm install
