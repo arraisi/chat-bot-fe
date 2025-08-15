@@ -4,8 +4,7 @@ import type { Authority, UploadedFile, UploadedFilesResponse, UploadFileResponse
 // Create axios instance for upload API
 // Use VITE_API_BASE_URL or fallback to '/api' for production and 'http://localhost:8000/api' for development
 const apiBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.MODE === 'production' ? '/api' : 'http://localhost:8000/api');
+  import.meta.env.VITE_API_BASE_URL || (import.meta.env.MODE === 'production' ? '/api' : 'http://localhost:8000/api');
 
 const uploadApi = axios.create({
   baseURL: apiBaseUrl,
@@ -51,7 +50,7 @@ export const uploadFileForTraining = async (
   try {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('authority', authority);
+    formData.append('otoritas', authority);
     formData.append('category', category);
     if (description) {
       formData.append('description', description);

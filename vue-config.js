@@ -1,4 +1,4 @@
 // vue.config.js
 module.exports = {
-  publicPath: '/peruri-chat-bot/',
+  publicPath: '/chat-bot-fe/',
 };

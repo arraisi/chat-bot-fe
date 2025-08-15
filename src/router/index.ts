@@ -18,7 +18,7 @@ const fallbackRoutes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL || '/peruri-chat-bot/'),
+  history: createWebHistory(import.meta.env.BASE_URL || '/chat-bot-fe/'),
   routes: routes.length > 0 ? routes : fallbackRoutes,
 });
 
