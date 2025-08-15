@@ -7,6 +7,7 @@
 // Composables
 import { createRouter, createWebHistory } from 'vue-router/auto';
 import { routes } from 'vue-router/auto-routes';
+import ssoService from '../services/ssoService';
 
 // Fallback routes in case auto-routes fail
 const fallbackRoutes = [
@@ -22,8 +23,69 @@ const router = createRouter({
   routes: routes.length > 0 ? routes : fallbackRoutes,
 });
 
-// Default route guard - redirect to login for authority selection
+// SSO Token handling
+const handleSSOToken = () => {
+  console.log("SSO token handler initialized");
+  
+  window.addEventListener("message", (event) => {
+    console.log("Received SSO event", event);
+    
+    // Validate origin - update this to match your SSO origin
+    if (event.origin !== import.meta.env.VITE_APP_ORIGIN) return;
+
+    if (event.data === "ping") {
+      (event.source as Window)?.postMessage("ready", event.origin);
+    }
+
+    if (event.data.token) {
+      console.log("Received SSO token:", event.data.token);
+      
+      try {
+        // Decode JWT token using SSO service
+        const tokenPayload = ssoService.decodeToken(event.data.token);
+        if (!tokenPayload) {
+          throw new Error("Failed to decode token");
+        }
+
+        console.log("Decoded token payload:", tokenPayload);
+
+        // Extract user authority from aiva-peruri roles
+        const userAuthority = ssoService.extractUserAuthority(tokenPayload);
+
+        if (userAuthority) {
+          // Create user profile
+          const userProfile = ssoService.createUserProfile(tokenPayload);
+          
+          // Store authentication data
+          ssoService.storeAuthData(event.data.token, userAuthority, userProfile);
+
+          console.log("User authenticated with authority:", userAuthority);
+          console.log("User profile:", userProfile);
+          
+          // Send confirmation back to parent
+          (event.source as Window)?.postMessage("token_received", event.origin);
+          
+          // Redirect to home if currently on login/register page
+          if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+            window.location.href = '/';
+          }
+        } else {
+          console.error("No aiva-peruri roles found in token");
+          ssoService.clearAuthData();
+        }
+      } catch (error) {
+        console.error("Error processing SSO token:", error);
+        ssoService.clearAuthData();
+      }
+    }
+  });
+};
+
+// Default route guard with SSO support
 router.beforeEach((to, from, next) => {
+  // Initialize SSO token handler
+  handleSSOToken();
+
   // Check if user is going to login page or already authenticated
   if (to.path === '/login') {
     next();
@@ -37,11 +99,19 @@ router.beforeEach((to, from, next) => {
   }
 
   // For all other routes, check authentication and authority
-  const authStatus = localStorage.getItem('isAuthenticated');
-  const authority = localStorage.getItem('userAuthority');
+  const authData = ssoService.getAuthData();
 
-  if (authStatus === 'true' && authority) {
-    // User is authenticated with authority, allow access
+  if (authData.isAuthenticated && authData.authority && authData.token) {
+    // Check if token is expired
+    if (ssoService.isTokenExpired(authData.token)) {
+      console.log("Token expired, clearing auth data");
+      ssoService.clearAuthData();
+      next('/login');
+      return;
+    }
+
+    // Configure axios with stored token
+    ssoService.configureAxiosToken(authData.token);
     next();
   } else {
     // User is not authenticated or doesn't have authority, redirect to login
