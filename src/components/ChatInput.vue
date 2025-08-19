@@ -354,7 +354,7 @@
 
   const availableCategories = computed(() => getCategoriesByAuthority(props.userAuthority));
 
-  // Clear selected category when authority changes (categories change)
+  // Auto-select first category when categories change
   watch(
     availableCategories,
     (newCategories, oldCategories) => {
@@ -362,8 +362,13 @@
       if (oldCategories && newCategories !== oldCategories) {
         selectedCategory.value = '';
       }
+
+      // Auto-select first category if available and none is selected
+      if (newCategories.length > 0 && !selectedCategory.value) {
+        selectedCategory.value = newCategories[0].value;
+      }
     },
-    { immediate: false }
+    { immediate: true } // Run immediately on component mount
   );
 
   const placeholderText = computed(() => {

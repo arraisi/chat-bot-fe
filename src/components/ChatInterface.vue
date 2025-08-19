@@ -142,11 +142,11 @@
                 <!-- Empty State -->
                 <div v-if="messages.length === 0" class="empty-state">
                   <div class="text-center">
-                    <img src="../assets/aiva_color.png" alt="AIVA" class="aiva-logo mb-4" />
+                    <img src="../assets/aiva_new_logo.png" alt="AIVA" class="aiva-logo mb-4" />
                     <!-- <v-icon size="80" color="primary" class="mb-4 mt-8">mdi-robot-excited</v-icon> -->
                     <!-- <h2 class="mb-2 text-h4">Welcome to AIVA</h2> -->
                     <p class="text-body-1 text-medium-emphasis mb-4">
-                      AI Virtual Assistant untuk informasi Peruri. Pilih kategori dan mulai percakapan!
+                      AI Virtual Assistant untuk informasi Aiva. Pilih kategori dan mulai percakapan!
                     </p>
 
                     <!-- Suggestion Questions (Auto-selected first category) -->

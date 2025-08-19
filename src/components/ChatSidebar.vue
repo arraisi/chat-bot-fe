@@ -5,7 +5,7 @@
       <v-list-item class="pa-4">
         <div class="text-center w-100">
           <!-- <h1 class="aiva-logo-text">AIVA</h1> -->
-          <img src="../assets/aiva_white.png" alt="AIVA Logo" class="company-logo" />
+          <img src="../assets/aiva_new_logo.png" alt="AIVA Logo" class="company-logo" />
         </div>
       </v-list-item>
     </div>

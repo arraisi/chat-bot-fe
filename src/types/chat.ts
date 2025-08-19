@@ -1,5 +1,17 @@
 export type Authority = 'ALL' | 'SDM' | 'HUKUM' | 'ADMIN';
 
+export interface UserAccount {
+  id?: string;
+  username: string;
+  name: string;
+  email: string;
+  authority: Authority;
+  roles?: string[];
+  employee_id?: string;
+  department?: string;
+  session_id?: string;
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -9,6 +21,7 @@ export interface Message {
   category?: string;
   authority?: Authority;
   metadata?: any;
+  user_account?: UserAccount;
 }
 
 export interface ChatSession {
@@ -20,6 +33,7 @@ export interface ChatSession {
   authority?: Authority;
   messageCount?: number;
   lastActivityAt?: Date | string | null;
+  user_account?: UserAccount;
 }
 
 export interface ChatBotResponse {
