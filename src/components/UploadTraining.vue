@@ -8,7 +8,7 @@
         </v-btn>
         <div class="header-text">
           <h1 class="page-title">Upload Files for AI Training</h1>
-          <p class="page-subtitle">Upload documents to train the AI chatbot for {{ currentAuthorityName }}</p>
+          <p class="page-subtitle">Upload documents to train the AIVA for {{ currentAuthorityName }}</p>
         </div>
       </div>
     </div>

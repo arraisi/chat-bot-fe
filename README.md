@@ -1,27 +1,18 @@
 # Chat Bot Frontend
 
-A modern Vue.js chat bot application built with Vuetify, similar to ChatGPT. Features include real-time messaging, chat history, session management, and API integration capabilities.
+A modern, responsive chat interface built with Vue 3, Vuetify, and TypeScript. This application provides a ChatGPT-like experience with conversation history, real-time messaging, and API integration capabilities.
 
-## Features
+## 🌟 Features
 
-- 🤖 **Modern Chat Interface** - Clean, responsive chat UI with message bubbles
-- 💬 **Multiple Chat Sessions** - Create and manage multiple conversations
-- 📱 **Responsive Design** - Works perfectly on desktop and mobile
-- 🔄 **Real-time Typing Indicators** - Visual feedback during bot responses
-- 💾 **Local Storage** - Chat history persists between sessions
-- 🔌 **API Integration Ready** - Easy to connect to any ChatBot API
-- ⚡ **Performance Optimized** - Built with Vue 3 Composition API
+- **Modern Chat Interface**: Clean, responsive design similar to ChatGPT
+- **Conversation History**: Automatic saving and management of chat sessions
+- **Real-time Messaging**: Instant message exchange with typing indicators
+- **Persistent Storage**: Chat history saved in localStorage
+- **API Integration**: Ready for integration with any ChatBot API
+- **Mobile Responsive**: Works perfectly on all device sizes
+- **Dark/Light Theme**: Automatic theme detection
 
-## Tech Stack
-
-- **Vue 3** - Progressive JavaScript framework
-- **Vuetify 3** - Material Design component library
-- **TypeScript** - Type-safe development
-- **Vite** - Fast build tool and dev server
-- **Vue Router** - Client-side routing
-- **@vueuse/core** - Collection of essential Vue Composition Utilities
-
-## Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -30,130 +21,249 @@ A modern Vue.js chat bot application built with Vuetify, similar to ChatGPT. Fea
 
 ### Installation
 
-1. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-
-2. **Start development server**
-
-   ```bash
-   npm run dev
-   ```
-
-3. **Open your browser**
-   Navigate to `http://localhost:5173`
-
-## Usage
-
-### Basic Usage
-
-The application starts with a mock API that generates random responses. You can immediately start chatting to test the interface.
-
-### Connecting to a Real ChatBot API
-
-1. **Create environment file**
-
-   ```bash
-   cp .env.example .env
-   ```
-
-2. **Add your API configuration**
-
-   ```env
-   VITE_CHATBOT_API_ENDPOINT=https://api.openai.com/v1/chat/completions
-   VITE_CHATBOT_API_KEY=your-api-key-here
-   VITE_CHATBOT_MODEL=gpt-3.5-turbo
-   ```
-
-3. **Update the chat composable**
-
-   Replace the mock API call in `src/composables/useChat.ts`:
-
-   ```typescript
-   // Replace this line:
-   await sendMessageMock(message);
-
-   // With this:
-   await sendMessage(message, import.meta.env.VITE_CHATBOT_API_ENDPOINT);
-   ```
-
-## ❗️ Important Links
-
-- 📄 [Docs](https://vuetifyjs.com/)
-- 🚨 [Issues](https://issues.vuetifyjs.com/)
-- 🏬 [Store](https://store.vuetifyjs.com/)
-- 🎮 [Playground](https://play.vuetifyjs.com/)
-- 💬 [Discord](https://community.vuetifyjs.com)
-
-## 💿 Install
-
-Set up your project using your preferred package manager. Use the corresponding command to install the dependencies:
-
-| Package Manager                                           | Command        |
-| --------------------------------------------------------- | -------------- |
-| [yarn](https://yarnpkg.com/getting-started)               | `yarn install` |
-| [npm](https://docs.npmjs.com/cli/v7/commands/npm-install) | `npm install`  |
-| [pnpm](https://pnpm.io/installation)                      | `pnpm install` |
-| [bun](https://bun.sh/#getting-started)                    | `bun install`  |
-
-After completing the installation, your environment is ready for Vuetify development.
-
-## ✨ Features
-
-- 🖼️ **Optimized Front-End Stack**: Leverage the latest Vue 3 and Vuetify 3 for a modern, reactive UI development experience. [Vue 3](https://v3.vuejs.org/) | [Vuetify 3](https://vuetifyjs.com/en/)
-- 🗃️ **State Management**: Integrated with [Pinia](https://pinia.vuejs.org/), the intuitive, modular state management solution for Vue.
-- 🚦 **Routing and Layouts**: Utilizes Vue Router for SPA navigation and vite-plugin-vue-layouts-next for organizing Vue file layouts. [Vue Router](https://router.vuejs.org/) | [vite-plugin-vue-layouts-next](https://github.com/loicduong/vite-plugin-vue-layouts-next)
-- 💻 **Enhanced Development Experience**: Benefit from TypeScript's static type checking and the ESLint plugin suite for Vue, ensuring code quality and consistency. [TypeScript](https://www.typescriptlang.org/) | [ESLint Plugin Vue](https://eslint.vuejs.org/)
-- ⚡ **Next-Gen Tooling**: Powered by Vite, experience fast cold starts and instant HMR (Hot Module Replacement). [Vite](https://vitejs.dev/)
-- 🧩 **Automated Component Importing**: Streamline your workflow with unplugin-vue-components, automatically importing components as you use them. [unplugin-vue-components](https://github.com/antfu/unplugin-vue-components)
-- 🛠️ **Strongly-Typed Vue**: Use vue-tsc for type-checking your Vue components, and enjoy a robust development experience. [vue-tsc](https://github.com/johnsoncodehk/volar/tree/master/packages/vue-tsc)
-
-These features are curated to provide a seamless development experience from setup to deployment, ensuring that your Vuetify application is both powerful and maintainable.
-
-## 💡 Usage
-
-This section covers how to start the development server and build your project for production.
-
-### Starting the Development Server
-
-To start the development server with hot-reload, run the following command. The server will be accessible at [http://localhost:3000](http://localhost:3000):
+1. Clone the repository:
 
 ```bash
-yarn dev
+git clone <your-repo-url>
+cd chat-bot-fe
 ```
 
-(Repeat for npm, pnpm, and bun with respective commands.)
-
-> Add NODE_OPTIONS='--no-warnings' to suppress the JSON import warnings that happen as part of the Vuetify import mapping. If you are on Node [v21.3.0](https://nodejs.org/en/blog/release/v21.3.0) or higher, you can change this to NODE_OPTIONS='--disable-warning=5401'. If you don't mind the warning, you can remove this from your package.json dev script.
-
-### Building for Production
-
-To build your project for production, use:
+2. Install dependencies:
 
 ```bash
-yarn build
+npm install
 ```
 
-(Repeat for npm, pnpm, and bun with respective commands.)
+3. Start the development server:
 
-Once the build process is completed, your application will be ready for deployment in a production environment.
+```bash
+npm run dev
+```
 
-## 💪 Support Vuetify Development
+4. Open your browser and navigate to `http://localhost:5173`
 
-This project is built with [Vuetify](https://vuetifyjs.com/en/), a UI Library with a comprehensive collection of Vue components. Vuetify is an MIT licensed Open Source project that has been made possible due to the generous contributions by our [sponsors and backers](https://vuetifyjs.com/introduction/sponsors-and-backers/). If you are interested in supporting this project, please consider:
+## 🔧 API Integration
 
-- [Requesting Enterprise Support](https://support.vuetifyjs.com/)
-- [Sponsoring John on Github](https://github.com/users/johnleider/sponsorship)
-- [Sponsoring Kael on Github](https://github.com/users/kaelwd/sponsorship)
-- [Supporting the team on Open Collective](https://opencollective.com/vuetify)
-- [Becoming a sponsor on Patreon](https://www.patreon.com/vuetify)
-- [Becoming a subscriber on Tidelift](https://tidelift.com/subscription/npm/vuetify)
-- [Making a one-time donation with Paypal](https://paypal.me/vuetify)
+### Using Mock API (Default)
 
-## 📑 License
+By default, the application uses a mock API that simulates ChatBot responses. This is perfect for development and testing.
 
-[MIT](http://opensource.org/licenses/MIT)
+### Integrating with Real ChatBot API
 
-Copyright (c) 2016-present Vuetify, LLC
+To connect with a real ChatBot API:
+
+1. **Update the API endpoint**: Modify the `sendMessage` function in `src/composables/useChat.ts`
+
+2. **Replace mock calls**: Change `sendMessageMock` to `sendMessage` in `src/components/ChatInterface.vue`
+
+3. **Configure your API**: Update `src/services/chatApi.ts` with your API details
+
+### ChatGPT Integration Example
+
+To integrate with OpenAI's ChatGPT API:
+
+1. Get your OpenAI API key from [OpenAI Platform](https://platform.openai.com/)
+
+2. Create a `.env` file:
+
+```env
+VITE_OPENAI_API_KEY=your_openai_api_key_here
+```
+
+3. Use the `sendToChatGPT` function from `src/services/chatApi.ts`
+
+4. Update the chat composable to use the real API:
+
+```typescript
+// In src/composables/useChat.ts
+import { sendToChatGPT } from '@/services/chatApi';
+
+// Replace the mock implementation with:
+const sendMessage = async (userMessage: string) => {
+  if (!currentSession.value) {
+    createNewSession();
+  }
+
+  try {
+    isLoading.value = true;
+    error.value = null;
+
+    addMessage(userMessage, 'user');
+    const assistantMessage = addMessage('', 'assistant', true);
+
+    const conversationHistory = currentSession.value!.messages.slice(-10).filter(m => !m.isTyping);
+
+    const response = await sendToChatGPT({
+      message: userMessage,
+      conversation_history: conversationHistory,
+    });
+
+    if (assistantMessage) {
+      updateMessage(assistantMessage.id, response.content, false);
+    }
+  } catch (error_) {
+    error.value = error_ instanceof Error ? error_.message : 'An error occurred';
+    // Handle error...
+  } finally {
+    isLoading.value = false;
+  }
+};
+```
+
+## 📁 Project Structure
+
+```
+src/
+├── components/          # Vue components
+│   ├── ChatInterface.vue    # Main chat interface
+│   ├── ChatMessage.vue      # Individual message component
+│   ├── ChatInput.vue        # Message input component
+│   └── ChatSidebar.vue      # Chat history sidebar
+├── composables/         # Vue composables
+│   └── useChat.ts           # Chat logic and state management
+├── services/            # API services
+│   └── chatApi.ts           # API integration utilities
+├── types/               # TypeScript type definitions
+│   └── chat.ts              # Chat-related types
+└── pages/               # Application pages
+    └── index.vue            # Main page
+```
+
+## 🎨 Customization
+
+### Styling
+
+The application uses Vuetify for UI components. You can customize the theme in `src/plugins/vuetify.ts`:
+
+```typescript
+import { createVuetify } from 'vuetify';
+
+export default createVuetify({
+  theme: {
+    defaultTheme: 'light',
+    themes: {
+      light: {
+        colors: {
+          primary: '#1976D2',
+          secondary: '#424242',
+          // Add your custom colors
+        },
+      },
+    },
+  },
+});
+```
+
+### Message Components
+
+Customize message appearance by modifying `src/components/ChatMessage.vue`:
+
+- Change avatar icons
+- Modify message bubble styling
+- Add message actions (copy, delete, etc.)
+- Implement message reactions
+
+### Chat Features
+
+Extend functionality by modifying `src/composables/useChat.ts`:
+
+- Add message search
+- Implement message export
+- Add file upload support
+- Create message categories
+
+## 🔌 API Specification
+
+### Request Format
+
+```typescript
+interface ChatBotRequest {
+  message: string;
+  conversation_history?: Message[];
+}
+```
+
+### Response Format
+
+```typescript
+interface ChatBotResponse {
+  content: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+```
+
+### Example API Endpoint
+
+```typescript
+POST /api/chat
+Content-Type: application/json
+
+{
+  "message": "Hello, how are you?",
+  "conversation_history": [
+    {
+      "role": "user",
+      "content": "Previous message"
+    },
+    {
+      "role": "assistant",
+      "content": "Previous response"
+    }
+  ]
+}
+```
+
+## 🚀 Deployment
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+### Deploy to Netlify/Vercel
+
+1. Connect your repository to Netlify or Vercel
+2. Set build command: `npm run build`
+3. Set publish directory: `dist`
+4. Add environment variables if using external APIs
+
+### Deploy to Traditional Hosting
+
+1. Run `npm run build`
+2. Upload the `dist` folder contents to your web server
+3. Configure your server to serve `index.html` for all routes (SPA mode)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and commit: `git commit -m 'Add feature'`
+4. Push to the branch: `git push origin feature-name`
+5. Submit a pull request
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+If you need help or have questions:
+
+1. Check the existing issues
+2. Create a new issue with detailed information
+3. Provide steps to reproduce any bugs
+
+## 🔄 Updates
+
+- **v1.0.0**: Initial release with basic chat functionality
+- **v1.1.0**: Added conversation history and persistence
+- **v1.2.0**: Improved mobile responsiveness and typing indicators
+
+---
+
+Built with ❤️ using Vue 3, Vuetify, and TypeScript.

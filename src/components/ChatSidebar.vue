@@ -4,7 +4,6 @@
     <div class="sidebar-logo">
       <v-list-item class="pa-4">
         <div class="text-center w-100">
-          <!-- <h1 class="aiva-logo-text">AIVA</h1> -->
           <img src="../assets/aiva_new_logo.png" alt="AIVA Logo" class="company-logo" />
         </div>
       </v-list-item>
@@ -35,7 +34,7 @@
           class="text-white font-weight-medium mb-2 justify-start"
           @click="$emit('upload-file')"
         />
-        <!-- 
+        <!--
         <v-btn
           block
           color="white"

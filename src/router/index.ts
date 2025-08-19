@@ -121,7 +121,7 @@ router.beforeEach((to, from, next) => {
 
   if (authData.isAuthenticated && authData.authority && authData.token) {
     // Check if token is expired
-    if (ssoService.isTokenExpired(authData.token)) {
+    if (import.meta.env.PROD && ssoService.isTokenExpired(authData.token)) {
       console.log('Token expired, clearing auth data');
       ssoService.clearAuthData();
       next('/login');

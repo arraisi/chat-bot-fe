@@ -142,7 +142,12 @@
                 <!-- Empty State -->
                 <div v-if="messages.length === 0" class="empty-state">
                   <div class="text-center">
-                    <img src="../assets/aiva_new_logo.png" alt="AIVA" class="aiva-logo mb-4" />
+                    <img
+                      src="../assets/aiva_new_logo.png"
+                      style="max-width: 320px; height: auto"
+                      alt="AIVA"
+                      class="aiva-logo mb-4"
+                    />
                     <!-- <v-icon size="80" color="primary" class="mb-4 mt-8">mdi-robot-excited</v-icon> -->
                     <!-- <h2 class="mb-2 text-h4">Welcome to AIVA</h2> -->
                     <p class="text-body-1 text-medium-emphasis mb-4">
@@ -268,7 +273,7 @@
   import { computed, nextTick, onMounted, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { useAuth } from '../composables/useAuth';
-  import { useChat } from '../composables/useChat';
+  import { useChat } from '../composables/useChatWithBackend';
   import type { Authority } from '../types/chat';
   import UploadTraining from './UploadTraining.vue';
 
@@ -283,7 +288,6 @@
     switchToSession,
     deleteSession,
     sendMessage, // Now using real API
-    sendMessageMock, // Keep for fallback
     initialize,
   } = useChat();
 
@@ -703,9 +707,8 @@
       scrollToBottom();
     } catch (error) {
       console.error('Error sending message:', error);
-      // Fallback to mock if real API fails
-      console.log('Falling back to mock API due to error');
-      await sendMessageMock(message);
+      // Show error to user
+      console.log('Failed to send message to backend');
       scrollToBottom();
     }
   }; // Handle suggestion category selection
@@ -718,7 +721,9 @@
   const handleSuggestionClick = async (suggestion: string, categoryValue: string) => {
     try {
       // First set the category in the input
-      await createNewSession(selectedAuthority.value);
+      await createNewSession({
+        authority: selectedAuthority.value,
+      });
       // Wait for the next tick to ensure the session is created
       await nextTick();
 
@@ -730,9 +735,8 @@
       scrollToBottom();
     } catch (error) {
       console.error('Error sending suggestion:', error);
-      // Fallback to mock if real API fails
-      console.log('Falling back to mock API for suggestion due to error');
-      await sendMessageMock(suggestion);
+      // Show error to user
+      console.log('Failed to send suggestion to backend');
       scrollToBottom();
     }
   }; // Account menu handlers
@@ -758,20 +762,15 @@
   const handleLogout = () => {
     // Handle user logout
     if (confirm('Are you sure you want to logout?')) {
-      // Use auth composable to logout
+      console.log('🚪 Chat: Starting logout process...');
+
+      // Use auth composable to logout (this will clear SSO token and auth data)
       logout();
 
-      // Optionally clear chat data as well
-      localStorage.removeItem('chatSessions');
-      localStorage.removeItem('currentSessionId');
-
-      // Reinitialize the chat system
+      // Reinitialize the chat system after logout (this will reload from backend)
       initialize();
 
-      console.log('User logged out successfully');
-
-      // Redirect to login page
-      router.push('/login');
+      console.log('🚪 Chat: User logged out successfully');
     }
 
     // Close the menu after action
@@ -780,7 +779,9 @@
 
   // Sidebar action handlers
   const handleNewChat = async () => {
-    await createNewSession(selectedAuthority.value);
+    await createNewSession({
+      authority: selectedAuthority.value,
+    });
   };
 
   const handleUploadFile = () => {

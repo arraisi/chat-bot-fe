@@ -419,11 +419,12 @@
         if (event.data === 'ready') {
           console.log('✅ Chat Bot is ready, sending token...');
 
-          // Send the SSO token
+          // Send the SSO token - using both formats for compatibility
           setTimeout(() => {
             chatBotWindow.postMessage(
               {
-                token: SAMPLE_TOKEN,
+                token: SAMPLE_TOKEN, // Legacy format
+                access_token: SAMPLE_TOKEN, // Standard OAuth format
               },
               '*'
             );
@@ -499,7 +500,7 @@
                     opacity: 1;
                 }
             }
-            
+
             @keyframes slideOut {
                 from {
                     transform: translateX(0);

@@ -107,6 +107,15 @@ class SSOService {
    * Create user profile from token payload
    */
   public createUserProfile(tokenPayload: TokenPayload): UserProfile {
+    console.log('🔍 SSO: Creating user profile from token payload:', {
+      name: tokenPayload.name,
+      given_name: tokenPayload.given_name,
+      family_name: tokenPayload.family_name,
+      email: tokenPayload.email,
+      preferred_username: tokenPayload.preferred_username,
+      hasAivaPeruriRoles: !!tokenPayload.resource_access?.['aiva-peruri']?.roles,
+    });
+
     const aivaRoles = tokenPayload.resource_access?.['aiva-peruri']?.roles || [];
 
     const profile = {
@@ -193,15 +202,21 @@ class SSOService {
    * Clear all authentication data
    */
   public clearAuthData(): void {
+    console.log('🧹 SSO: Clearing all authentication data...');
+
+    // Clear SSO-related localStorage items
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('userAuthority');
     localStorage.removeItem('ssoToken');
     localStorage.removeItem('userProfile');
 
-    // Remove authorization header
+    // Remove authorization header from axios
     if (axios.defaults.headers.common) {
       delete axios.defaults.headers.common['Authorization'];
+      console.log('🧹 SSO: Removed axios authorization header');
     }
+
+    console.log('🧹 SSO: Authentication data cleared successfully');
   }
 
   /**
@@ -213,16 +228,34 @@ class SSOService {
     let userId = undefined;
     let employeeId = undefined;
 
+    console.log('🔍 SSO: Creating user account with profile:', {
+      givenName: profile.givenName,
+      name: profile.name,
+      username: profile.username,
+      email: profile.email,
+      hasToken: !!token,
+    });
+
     if (token) {
       const payload = this.decodeToken(token);
       if (payload) {
         // Use 'given_name' field as the user ID (contains the actual user ID like "7780")
         userId = payload.given_name;
         employeeId = payload.given_name; // Employee ID is also the given_name
+
+        console.log('🔍 SSO: Extracted from token payload:', {
+          given_name: payload.given_name,
+          userId,
+          employeeId,
+        });
+      } else {
+        console.error('❌ SSO: Failed to decode token for user account creation');
       }
+    } else {
+      console.error('❌ SSO: No token found in localStorage for user account creation');
     }
 
-    return {
+    const userAccount = {
       id: userId,
       username: profile.username,
       name: profile.name,
@@ -232,6 +265,10 @@ class SSOService {
       employee_id: employeeId,
       department: this.extractDepartmentFromRoles(profile.roles),
     };
+
+    console.log('🔍 SSO: Created user account:', userAccount);
+
+    return userAccount;
   }
 
   /**

@@ -78,7 +78,7 @@
 
     <!-- Footer with disclaimer and branding -->
     <div class="chat-footer">
-      <div class="disclaimer-text">PeruriBot can make mistakes. Check our Terms & Conditions.</div>
+      <div class="disclaimer-text">Aiva can make mistakes. Check our Terms & Conditions.</div>
       <div class="powered-by">Powered by <strong>NUTANIX</strong></div>
     </div>
 
@@ -376,7 +376,7 @@
       return 'Please select the category';
     }
     const categoryLabel =
-      availableCategories.value.find(cat => cat.value === selectedCategory.value)?.label || 'PeruriBot';
+      availableCategories.value.find(cat => cat.value === selectedCategory.value)?.label || 'Aiva';
     return `Ask about ${categoryLabel}...`;
   });
 

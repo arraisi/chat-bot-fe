@@ -54,6 +54,45 @@
         </div>
       </div>
     </div>
+
+    <!-- SSO Authentication Modal for Development -->
+    <v-dialog v-model="showSSOModal" max-width="500">
+      <v-card>
+        <v-card-title class="sso-modal-title">
+          <v-icon color="#202887" class="me-2">mdi-login</v-icon>
+          SSO Authentication Required
+        </v-card-title>
+
+        <v-card-text class="sso-modal-content">
+          <v-alert type="warning" variant="tonal" class="mb-4">
+            <v-alert-title>Authentication Required</v-alert-title>
+            You need to authenticate through the SSO portal before accessing the chat bot.
+          </v-alert>
+
+          <p class="text-body-2 mb-3">
+            To continue with your selected authority, please complete the SSO authentication process first.
+          </p>
+
+          <p class="text-body-2 mb-3">
+            In development mode, you can use the mock SSO portal to test the authentication flow.
+          </p>
+
+          <div class="d-flex align-center justify-center">
+            <v-icon color="primary" class="me-2">mdi-information</v-icon>
+            <span class="text-caption">This modal only appears in development environments</span>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="sso-modal-actions">
+          <v-btn variant="text" @click="showSSOModal = false"> Cancel </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" variant="elevated" @click="redirectToSSOPortal" :loading="redirecting">
+            <v-icon class="me-1">mdi-open-in-new</v-icon>
+            Open SSO Portal Mock
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -76,6 +115,13 @@
   const selectedAuthority = ref<Authority | null>(null);
   const loading = ref(false);
   const userRoles = ref<string[]>([]);
+  const showSSOModal = ref(false);
+  const redirecting = ref(false);
+
+  // Check if we're in development environment
+  const isDevelopment = computed(() => {
+    return import.meta.env.DEV || import.meta.env.VITE_DEV_MODE === 'true';
+  });
 
   const allAuthorities: AuthorityOption[] = [
     {
@@ -134,6 +180,80 @@
 
   // Get user roles from SSO token on component mount
   onMounted(() => {
+    // Listen for SSO tokens from parent window (SSO Portal)
+    const handleSSO = (event: MessageEvent) => {
+      // Verify origin if needed (in production, add proper origin checking)
+      console.log('📨 Received message from parent:', event.data);
+
+      if (event.data === 'ping') {
+        // Respond that we're ready
+        console.log('📤 Sending ready response to parent');
+        (event.source as Window)?.postMessage('ready', '*');
+        return;
+      }
+
+      // Handle token from SSO portal - support multiple formats
+      if (event.data && (event.data.token || event.data.access_token)) {
+        console.log('🔑 Received SSO token from parent window');
+
+        try {
+          // Get token from either 'token' or 'access_token' field
+          const token = event.data.token || event.data.access_token;
+
+          console.log('🔍 Token source:', event.data.token ? 'event.data.token' : 'event.data.access_token');
+
+          // Process token using SSO service
+          const tokenPayload = ssoService.decodeToken(token);
+          if (tokenPayload) {
+            console.log('✅ Token decoded successfully:', tokenPayload);
+
+            // Extract user authority and create profile
+            const userAuthority = ssoService.extractUserAuthority(tokenPayload);
+            const userProfile = ssoService.createUserProfile(tokenPayload);
+
+            if (userAuthority && userProfile) {
+              // Store authentication data
+              ssoService.storeAuthData(token, userAuthority, userProfile);
+
+              console.log('🔐 User authenticated via postMessage');
+              console.log('👤 User profile:', userProfile);
+              console.log('🏷️ User authority:', userAuthority);
+
+              // Notify parent that token was received
+              (event.source as Window)?.postMessage('token_received', '*');
+
+              // Update user roles from the received profile
+              if (userProfile.roles) {
+                userRoles.value = userProfile.roles;
+                console.log('🔍 User roles updated from SSO:', userRoles.value);
+              }
+
+              // If user has authority, auto-select it and proceed
+              if (userAuthority && authorities.value.some(auth => auth.code === userAuthority)) {
+                selectedAuthority.value = userAuthority as Authority;
+                console.log('🎯 Auto-selected authority:', userAuthority);
+
+                // Automatically proceed to chat if authority is valid
+                setTimeout(() => {
+                  handleContinue();
+                }, 500);
+              }
+            } else {
+              console.warn('⚠️ Failed to extract user authority or profile from token');
+            }
+          } else {
+            console.error('❌ Failed to decode token payload');
+          }
+        } catch (error) {
+          console.error('❌ Error processing SSO token from postMessage:', error);
+        }
+      }
+    };
+
+    // Add the message listener
+    window.addEventListener('message', handleSSO);
+
+    // Check existing user profile
     const userProfile = ssoService.getUserProfile();
     if (userProfile && userProfile.roles) {
       userRoles.value = userProfile.roles;
@@ -145,10 +265,74 @@
     } else {
       console.log('⚠️ No user profile or roles found - user needs SSO authentication');
     }
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener('message', handleSSO);
+    };
   });
+
+  // Check if SSO authentication is needed and show modal
+  const checkAndShowSSOModal = () => {
+    const authData = ssoService.getAuthData();
+    const hasValidToken = authData.isAuthenticated && authData.token;
+    const hasAuthority = authData.authority;
+
+    if (!hasValidToken || !hasAuthority) {
+      console.log('🔔 Showing SSO modal - missing authentication data');
+      showSSOModal.value = true;
+    }
+  };
+
+  // Redirect to SSO Portal Mock (development only)
+  const redirectToSSOPortal = () => {
+    if (!isDevelopment.value) {
+      console.warn('⚠️ SSO Portal Mock redirect only available in development');
+      return;
+    }
+
+    redirecting.value = true;
+
+    try {
+      // Close the modal first
+      showSSOModal.value = false;
+
+      // Open SSO portal mock in new window
+      const ssoPortalUrl = `${window.location.origin}/sso-portal-mock.html`;
+      console.log('🚀 Opening SSO Portal Mock:', ssoPortalUrl);
+
+      window.open(ssoPortalUrl, '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
+
+      // Show info message
+      console.log('💡 SSO Portal opened in new window. Complete authentication there and return to this page.');
+    } catch (error) {
+      console.error('❌ Error opening SSO Portal:', error);
+    } finally {
+      redirecting.value = false;
+    }
+  };
 
   const handleContinue = async () => {
     if (!selectedAuthority.value) return;
+
+    // Check if user has valid authentication before proceeding
+    const authData = ssoService.getAuthData();
+    const hasValidToken = authData.isAuthenticated && authData.token;
+    const hasAuthority = authData.authority;
+
+    // If no valid authentication and in development, show SSO modal
+    if ((!hasValidToken || !hasAuthority) && isDevelopment.value) {
+      console.log('🔔 No valid authentication found, showing SSO modal');
+      showSSOModal.value = true;
+      return;
+    }
+
+    // If in production and no valid authentication, show error
+    if (!hasValidToken || !hasAuthority) {
+      console.error('❌ No valid authentication found in production environment');
+      // You could show a toast/snackbar here instead of modal
+      return;
+    }
 
     loading.value = true;
 
@@ -298,6 +482,24 @@
 
   .continue-btn:hover {
     background-color: #1a1f6b !important;
+  }
+
+  /* SSO Modal Styles */
+  .sso-modal-title {
+    background-color: #f8f9ff;
+    color: #202887;
+    font-weight: 600;
+    border-bottom: 1px solid #e3e3e3;
+  }
+
+  .sso-modal-content {
+    padding: 1.5rem;
+  }
+
+  .sso-modal-actions {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9ff;
+    border-top: 1px solid #e3e3e3;
   }
 
   /* Responsive design */

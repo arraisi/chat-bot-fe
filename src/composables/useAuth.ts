@@ -28,11 +28,16 @@ export const useAuth = () => {
       console.log('Checking auth:', authData);
 
       if (authData.isAuthenticated && authData.authority && authData.token) {
-        // Check if token is expired
+        // Check if token is expired (clear only if in production)
+        const isProduction = import.meta.env.PROD || import.meta.env.NODE_ENV === 'production';
         if (ssoService.isTokenExpired(authData.token)) {
-          console.log('Token expired, clearing auth data');
-          logout();
-          return false;
+          if (isProduction) {
+            console.log('Token expired, clearing auth data');
+            logout();
+            return false;
+          } else {
+            console.log('⚠️ Token expired but skipping validation outside production');
+          }
         }
 
         isAuthenticated.value = true;
@@ -159,7 +164,9 @@ export const useAuth = () => {
 
   // Logout function (updated to use SSO service)
   const logout = () => {
-    // Clear SSO data
+    console.log('🚪 SSO: Starting logout process...');
+
+    // Clear SSO data (this will remove token and clear axios headers)
     ssoService.clearAuthData();
 
     // Clear local state
@@ -174,6 +181,8 @@ export const useAuth = () => {
     localStorage.removeItem('username');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userAuthority');
+
+    console.log('🚪 SSO: Logout completed - all auth data cleared');
 
     router.push('/login');
   };

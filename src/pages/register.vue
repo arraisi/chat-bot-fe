@@ -13,7 +13,7 @@
         <div class="register-form">
           <div class="register-header">
             <h1 class="register-title">REGISTER</h1>
-            <p class="register-subtitle">Buat akun baru untuk mengakses aplikasi PeruriBot!</p>
+            <p class="register-subtitle">Buat akun baru untuk mengakses aplikasi Aiva!</p>
           </div>
 
           <v-form @submit.prevent="handleRegister" class="form">

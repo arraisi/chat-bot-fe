@@ -10,7 +10,7 @@ import type { Authority, ChatSession, Message } from '../types/chat';
 
 import { computed, ref } from 'vue';
 
-export const useChat = () => {
+export const useChatLegacy = () => {
   // Store chat sessions in localStorage with API sync
   const chatSessions = ref<ChatSession[]>([]);
   const currentSessionId = ref<string | null>(null);
