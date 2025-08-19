@@ -3,7 +3,7 @@
     <!-- App Bar -->
     <v-app-bar elevation="0" color="white" class="flexible-app-bar" :style="appBarStyle">
       <!-- Sidebar Toggle Button -->
-      <v-app-bar-nav-icon color="black" @click="sidebarOpen = !sidebarOpen" />
+      <v-app-bar-nav-icon color="black" @click="toggleSidebar" />
 
       <!-- App Bar Title with Authority Selector -->
       <v-toolbar-title class="d-flex align-center">
@@ -106,20 +106,14 @@
     </v-app-bar>
 
     <!-- Navigation Drawer (Collapsible Sidebar) - Higher hierarchy -->
-    <v-navigation-drawer
-      v-model="sidebarOpen"
-      width="280"
-      elevation="2"
-      class="navigation-drawer-priority navigation-drawer-fullheight"
-      permanent
-      app
-    >
+    <v-navigation-drawer v-model="sidebarOpen" :temporary="isSmallScreen" :width="280">
       <ChatSidebar
         :chat-sessions="chatSessions"
         :current-session-id="currentSessionId"
+        :is-mobile="isSmallScreen"
         @delete-session="deleteSession"
         @new-chat="handleNewChat"
-        @switch-session="switchToSession"
+        @switch-session="handleSwitchSession"
         @upload-file="handleUploadFile"
         @search-chat="handleSearchChat"
       />
@@ -270,7 +264,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, onMounted, ref, watch } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { useAuth } from '../composables/useAuth';
   import { useChat } from '../composables/useChatWithBackend';
@@ -386,8 +380,16 @@
   };
 
   const messagesEnd = ref<HTMLElement>();
-  const sidebarOpen = ref(true); // Sidebar open state
+  // Remove navigationDrawer ref since we're not using it
+  const isSmallScreen = ref(typeof window !== 'undefined' ? window.innerWidth < 600 : false); // Track if viewport width < 600px
+  const sidebarOpen = ref(typeof window !== 'undefined' ? window.innerWidth >= 600 : true); // Sidebar closed by default on mobile
   const accountMenuOpen = ref(false); // Account menu open state
+  const updateIsSmallScreen = () => {
+    isSmallScreen.value = window.innerWidth < 600;
+    if (isSmallScreen.value) {
+      sidebarOpen.value = false;
+    }
+  };
   const showUploadView = ref(false); // Upload view state
   const selectedSuggestionCategory = ref<any>(null); // Selected category for suggestions
   const suggestionsKey = ref(0); // Key to force re-render of suggestions
@@ -661,11 +663,14 @@
   };
 
   // Computed style for flexible app bar
-  const appBarStyle = computed(() => ({
-    marginLeft: sidebarOpen.value ? '280px' : '0px',
-    width: sidebarOpen.value ? 'calc(100% - 280px)' : '100%',
-    transition: 'all 0.3s ease-in-out',
-  }));
+  const appBarStyle = computed(() => {
+    const hasDrawer = sidebarOpen.value && !isSmallScreen.value;
+    return {
+      marginLeft: hasDrawer ? '280px' : '0px',
+      width: hasDrawer ? 'calc(100% - 280px)' : '100%',
+      transition: 'all 0.3s ease-in-out',
+    };
+  });
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = async () => {
@@ -680,6 +685,26 @@
       scrollToBottom();
     }
   );
+
+  // Watch for screen size changes to adjust sidebar behavior
+  watch(isSmallScreen, (newIsSmallScreen, oldIsSmallScreen) => {
+    console.log('Screen size changed from', oldIsSmallScreen, 'to', newIsSmallScreen);
+    // Only auto-manage sidebar when transitioning between mobile and desktop
+    if (newIsSmallScreen !== oldIsSmallScreen) {
+      if (newIsSmallScreen) {
+        console.log('Switching to mobile - closing sidebar');
+        sidebarOpen.value = false; // Close sidebar on small screens
+      } else {
+        console.log('Switching to desktop - opening sidebar');
+        sidebarOpen.value = true; // Open sidebar on larger screens
+      }
+    }
+  });
+
+  // Watch sidebar state changes for debugging
+  watch(sidebarOpen, (newState, oldState) => {
+    console.log('Sidebar state changed from', oldState, 'to', newState);
+  });
 
   // Watch for changes in filtered categories and auto-select first category
   watch(
@@ -778,15 +803,38 @@
   };
 
   // Sidebar action handlers
+  const toggleSidebar = () => {
+    sidebarOpen.value = !sidebarOpen.value;
+  };
+
+  // Remove the handleCloseSidebar function since we're using inline
+
   const handleNewChat = async () => {
     await createNewSession({
       authority: selectedAuthority.value,
     });
+    // Close sidebar on mobile after creating new chat
+    if (isSmallScreen.value) {
+      sidebarOpen.value = false;
+    }
+  };
+
+  const handleSwitchSession = (sessionId: string) => {
+    // Switch to the selected session
+    switchToSession(sessionId);
+    // Close sidebar on mobile after switching sessions
+    if (isSmallScreen.value) {
+      sidebarOpen.value = false;
+    }
   };
 
   const handleUploadFile = () => {
     // Toggle upload view instead of file picker
     showUploadView.value = true;
+    // Close sidebar on mobile after action
+    if (isSmallScreen.value) {
+      sidebarOpen.value = false;
+    }
   };
 
   const closeUploadView = () => {
@@ -802,19 +850,33 @@
 
   // Initialize the chat system
   onMounted(async () => {
+    updateIsSmallScreen();
+    window.addEventListener('resize', updateIsSmallScreen);
     await initialize();
     scrollToBottom();
     // Auto-select first category on mount
     autoSelectFirstCategory();
   });
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('resize', updateIsSmallScreen);
+  });
 </script>
 
 <style scoped>
+  /* CSS Custom Properties for responsive dimensions */
+  :root {
+    --app-bar-height: 64px;
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .chat-main-content {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 64px); /* Subtract app bar height from total height */
-    margin-top: 0px; /* Push content below app bar */
+    height: 100vh; /* Use full viewport height */
+    height: calc(100vh - var(--safe-area-top)); /* Account for device notches */
+    padding-top: calc(var(--app-bar-height) + var(--safe-area-top)); /* Dynamic app bar height + safe area */
   }
 
   .chat-messages-container {
@@ -824,6 +886,7 @@
     scrollbar-color: rgb(var(--v-theme-outline)) transparent;
     background-color: #f5f5f5;
     position: relative;
+    min-height: 0; /* Allow flex shrinking */
   }
 
   .chat-messages-container::-webkit-scrollbar {
@@ -847,8 +910,10 @@
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
-    /* Proper padding for better spacing */
     padding: 20px;
+    min-height: 100%; /* Ensure it takes at least full container height */
+    display: flex;
+    flex-direction: column;
   }
 
   .empty-state {
@@ -856,7 +921,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: calc(100vh - 200px - 64px); /* Account for app bar in empty state */
+    flex: 1; /* Take remaining space */
+    min-height: 60vh; /* Minimum height for better UX */
     text-align: center;
     padding: 2rem;
   }
@@ -1001,11 +1067,11 @@
 
   .messages-list {
     padding-bottom: 20px;
-    padding-top: 20px; /* Add top padding to prevent messages from being too close to app bar */
-    margin-top: 50px; /* Additional margin for extra spacing */
-    /* Ensure messages start from the top */
+    padding-top: 20px;
+    flex: 1; /* Take available space */
     display: flex;
     flex-direction: column;
+    min-height: 0; /* Allow flex shrinking */
   }
 
   .chat-input-container {
@@ -1015,65 +1081,87 @@
     position: sticky;
     bottom: 0;
     z-index: 1;
+    width: 100%;
+    max-height: 30vh; /* Prevent input from taking too much space */
+    padding-bottom: var(--safe-area-bottom); /* Account for device safe areas */
   }
 
   /* Mobile responsiveness */
-  @media (max-width: 768px) {
+  @media (max-width: 480px) {
+    :root {
+      --app-bar-height: 56px;
+    }
+
     .chat-main-content {
-      margin-top: 56px; /* Smaller app bar on mobile */
-      height: calc(100vh - 56px);
+      padding-top: var(--app-bar-height);
     }
 
     .chat-messages {
-      padding: 1rem;
+      padding: 12px;
     }
 
     .empty-state {
-      height: calc(100vh - 200px - 56px); /* Account for smaller app bar on mobile */
+      min-height: 50vh; /* Smaller min height on mobile */
       padding: 1rem;
+    }
+
+    .messages-list {
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+  }
+
+  /* Tablet responsiveness */
+  @media (min-width: 481px) and (max-width: 768px) {
+    :root {
+      --app-bar-height: 60px;
+    }
+
+    .chat-main-content {
+      padding-top: var(--app-bar-height);
+    }
+
+    .chat-messages {
+      padding: 16px;
+    }
+
+    .empty-state {
+      min-height: 55vh;
+      padding: 1.5rem;
+    }
+
+    .messages-list {
+      padding-top: 16px;
+      padding-bottom: 16px;
+    }
+  }
+
+  /* Large tablet/small desktop */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .chat-messages {
+      padding: 18px;
+    }
+
+    .empty-state {
+      min-height: 60vh;
+    }
+  }
+
+  /* Landscape mobile phones */
+  @media (max-width: 768px) and (orientation: landscape) {
+    .empty-state {
+      min-height: 40vh; /* Reduce height in landscape mode */
+      padding: 1rem;
+    }
+
+    .chat-messages {
+      padding: 10px;
     }
   }
 
   /* Vuetify app layout adjustments */
   :deep(.v-app-bar) {
-    z-index: 999; /* Lower than navigation drawer */
-  }
-
-  :deep(.v-navigation-drawer) {
-    z-index: 1000; /* Higher than app bar */
-  }
-
-  /* Navigation drawer priority class */
-  .navigation-drawer-priority {
-    z-index: 1001 !important;
-  }
-
-  /* Full height navigation drawer */
-  .navigation-drawer-fullheight {
-    height: 100vh !important;
-    top: 0 !important;
-  }
-
-  :deep(.navigation-drawer-fullheight .v-navigation-drawer__content) {
-    height: 100vh !important;
-  }
-
-  /* Flexible app bar that adjusts to navigation drawer */
-  .flexible-app-bar {
-    transition: all 0.3s ease-in-out !important;
-  }
-
-  /* When navigation drawer is open, adjust app bar */
-  :deep(.v-navigation-drawer--active) + .v-main .flexible-app-bar,
-  :deep(.v-navigation-drawer.v-navigation-drawer--active) ~ .flexible-app-bar {
-    margin-left: 280px !important;
-    width: calc(100% - 280px) !important;
-  }
-
-  /* When navigation drawer is closed */
-  :deep(.v-navigation-drawer:not(.v-navigation-drawer--active)) ~ .flexible-app-bar {
-    margin-left: 0 !important;
-    width: 100% !important;
+    z-index: 999;
   }
 
   /* Ensure proper spacing in light theme */

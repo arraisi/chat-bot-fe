@@ -1,5 +1,12 @@
 <template>
   <div class="chat-sidebar">
+    <!-- Mobile Close Button (only visible on mobile) -->
+    <!-- <div v-if="isMobile" class="mobile-close-header">
+      <v-btn icon size="small" variant="text" color="white" class="mobile-close-btn" @click="$emit('close-sidebar')">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </div> -->
+
     <!-- Company Logo -->
     <div class="sidebar-logo">
       <v-list-item class="pa-4">
@@ -136,6 +143,7 @@
   interface Props {
     chatSessions: ChatSession[];
     currentSessionId: string | null;
+    isMobile?: boolean;
   }
 
   interface Emits {
@@ -144,6 +152,7 @@
     'delete-session': [sessionId: string];
     'upload-file': [];
     'search-chat': [];
+    'close-sidebar': [];
   }
 
   const props = defineProps<Props>();
@@ -180,6 +189,27 @@
     display: flex;
     flex-direction: column;
     background-color: rgb(var(--v-theme-background));
+    position: relative;
+  }
+
+  /* Mobile close header */
+  .mobile-close-header {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+  }
+
+  .mobile-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+  }
+
+  .mobile-close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
   }
 
   .sidebar-logo {
