@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SSO Portal - Query Parameter Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        min-height: 100vh;
+        margin: 0;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .logo {
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #1e3c72;
+        font-weight: bold;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .btn {
+        background: #28a745;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 5px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.3s;
+      }
+      .btn:hover {
+        background: #218838;
+      }
+      .btn-primary {
+        background: #007bff;
+      }
+      .btn-primary:hover {
+        background: #0056b3;
+      }
+      .code-block {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px;
+        border-radius: 3px;
+        font-family: monospace;
+        margin: 10px 0;
+        word-break: break-all;
+      }
+      .info {
+        background: rgba(23, 162, 184, 0.2);
+        border: 1px solid rgba(23, 162, 184, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="logo">P</div>
+        <h1>SSO Portal - Query Parameter Test</h1>
+        <p>Testing JWT token via URL query parameter</p>
+      </div>
+
+      <div class="test-section">
+        <h3>📋 User Information</h3>
+        <div class="info">
+          <strong>Employee ID:</strong> 7780<br />
+          <strong>Name:</strong> WAHYU EDI SANTOSO<br />
+          <strong>Username:</strong> wahyu.santoso<br />
+          <strong>Email:</strong> 1930.7780@peruri.co.id<br />
+          <strong>Authority:</strong> HUKUM
+        </div>
+      </div>
+
+      <div class="test-section">
+        <h3>🔗 Direct URL with Token</h3>
+        <p>This URL includes the access_token as a query parameter:</p>
+        <div class="code-block" id="token-url"></div>
+        <button class="btn btn-primary" onclick="copyUrl()">📋 Copy URL</button>
+        <a href="#" class="btn" id="direct-link" target="_blank">🚀 Open Chat Bot with Token</a>
+      </div>
+
+      <div class="test-section">
+        <h3>⚙️ How It Works</h3>
+        <p>The new implementation:</p>
+        <ol>
+          <li>Chat bot checks for <code>access_token</code> query parameter</li>
+          <li>If found, decodes the JWT token</li>
+          <li>Extracts user profile and authority from token</li>
+          <li>Stores authentication data in localStorage</li>
+          <li>Removes token from URL for security</li>
+          <li>Redirects to main chat interface</li>
+        </ol>
+      </div>
+
+      <div class="test-section">
+        <h3>🧪 Test Steps</h3>
+        <ol>
+          <li>Click "Open Chat Bot with Token" button above</li>
+          <li>Watch browser console for debug messages</li>
+          <li>Verify user is authenticated with correct authority</li>
+          <li>Create a chat session and check database for user_id = "7780"</li>
+        </ol>
+      </div>
+    </div>
+
+    <script>
+      // Same JWT token as before
+      const SAMPLE_TOKEN =
+        'eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIyZTBmNjkzOC05ODU4LTQwZDgtOTczMy1kN2FhMmZkZjFmMGMifQ.eyJleHAiOjE3NTUyNTU5ODksImlhdCI6MTc1NTIxOTk4OSwianRpIjoiNmQwYmI5YjQtNmU2Ny00YTUyLWExMGItZGFmZTI2YWJjYWE5IiwiaXNzIjoiaHR0cHM6Ly8xMC4zMC4xMS4xNjc6NDQ0NC9yZWFsbXMvcGVydXJpIiwiYXVkIjpbIm9tdGktcGVydXJpIiwicmVhbG0tbWFuYWdlbWVudCIsImRzcy1wZXJ1cmkiLCJxdW1vbi1wZXJ1cmkiLCJraW5lcmpha3UtcGVydXJpIiwiYnJva2VyIiwiZXNzLXBlcnVyaSIsInNpZGlhLW1pY3Jvc2VydmljZXMtcGVydXJpIiwicG9ydGFsLXBlcnVyaSIsInNpaGVwaS1zc28iLCJhZG1pbi1jbGkiLCJkdW1teV9wcm9qZWN0IiwiYWNjb3VudCIsImVpbnZvaWNlLXBlcnVyaSIsIm1vbml0b3JpbmctcGVydXJpIl0sInN1YiI6ImUzOTY4ZGU3LTdmNjUtNDY0OC05M2QzLTllYjE3NjllMDgyMiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImFpdmEtcGVydXJpIiwic2Vzc2lvbl9zdGF0ZSI6IjlmYThhMzYzLTJmNWQtNDU3Yi04OTNiLTQ0YzYwZjZiN2Q4NSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdCJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiIsImRlZmF1bHQtcm9sZXMtcGVydXJpIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsib210aS1wZXJ1cmkiOnsicm9sZXMiOlsiYWRtaW4gZGVwYXJ0ZW1lbiJdfSwicmVhbG0tbWFuYWdlbWVudCI6eyJyb2xlcyI6WyJ2aWV3LWlkZW50aXR5LXByb3ZpZGVycyIsInZpZXctcmVhbG0iLCJtYW5hZ2UtaWRlbnRpdHktcHJvdmlkZXJzIiwiaW1wZXJzb25hdGlvbiIsInJlYWxtLWFkbWluIiwiY3JlYXRlLWNsaWVudCIsIm1hbmFnZS11c2VycyIsInF1ZXJ5LXJlYWxtcyIsInZpZXctYXV0aG9yaXphdGlvbiIsInF1ZXJ5LWNsaWVudHMiLCJxdWVyeS11c2VycyIsIm1hbmFnZS1ldmVudHMiLCJtYW5hZ2UtcmVhbG0iLCJ2aWV3LWV2ZW50cyIsInZpZXctdXNlcnMiLCJ2aWV3LWNsaWVudHMiLCJtYW5hZ2UtYXV0aG9yaXphdGlvbiIsIm1hbmFnZS1jbGllbnRzIiwicXVlcnktZ3JvdXBzIl19LCJkc3MtcGVydXJpIjp7InJvbGVzIjpbImRhdGEgYW5hbGlzIHNidSB1YW5nIiwiUXVtb24iLCJJbnRlcm5hbCBTUEkiLCJkYXRhIGFuYWxpcyBwZW5nZW1iYW5nYW4gdXNhaGEiLCJkYXRhIGFuYWxpcyBzYnUgbm9uIHVhbmciLCJEYXRhIEFuYWxpcyBTUEkiLCJLZXNlaGF0YW4iLCJkYXRhIGFuYWxpcyBkYWZhc3VtIiwiZGF0YSBhbmFsaXMgcHJvYmlzIGludGVybmFzaW9uYWwiLCJzdXBlciBhZG1pbiIsIlRhc2tmb3JjZSBDb3ZpZCIsIlN1bW1hcnkiLCJTaW1hbmRvciIsIklUT0MgUGVydXJpIl19LCJhaXZhLXBlcnVyaSI6eyJyb2xlcyI6WyJodWt1bSJdfSwicXVtb24tcGVydXJpIjp7InJvbGVzIjpbIlNla3NpIENldHNvcnVnYW0iLCJBZG1pbiBQS1AgVXRhcyIsIkRlcGRhbGl0YXMiLCJWaWV3ZXIgVWdhbSIsIlN1cGVyIEFkbWluIiwiU2FpcGFyc2lhbCBMaW5pIEIiLCJQS1AgVWdhbSIsIlNhaSBQYXJzaWFsIExpbmkgQSIsIktoYXpzYWkgTGluaSBCIiwiS2hhenNhaSBMaW5pIEEiLCJTZWtzaSBQS1AiLCJBZG1pbiBSaWtzYXIiLCJWaWV3ZXIgVXRhcyIsIktoYXpjdXRhcyBMaW5pIEEiLCJDdXRwYWsgTGluaSBBIiwiS2hhemN1dGFzIExpbmkgQiIsIlNla3NpIEtoYXpwcm9kdWdhbSIsIkN1dHBhayBMaW5pIEIiLCJQUElDIl19LCJraW5lcmpha3UtcGVydXJpIjp7InJvbGVzIjpbIlBlbmdndW5hIl19LCJicm9rZXIiOnsicm9sZXMiOlsicmVhZC10b2tlbiJdfSwiZXNzLXBlcnVyaSI6eyJyb2xlcyI6WyJQZXR1Z2FzIFBhbXNpa25pbG1hdFxyXG4iLCJLb21hbmRhbiBQb3NrbyIsIkFkbWluIFBhbXNpa25pbG1hdCIsIlN1cGVyYWRtaW4iLCJQZW5nZ3VuYSIsIkFkbWluIFBhbXNpa25pbW1hdCAtIE1hc3RlciBEYXRhIl19LCJzaWRpYS1taWNyb3NlcnZpY2VzLXBlcnVyaSI6eyJyb2xlcyI6WyJEaXJla3RvcmF0IFNETSwgVGVrbm9sb2dpLCBkYW4gSW5mb3JtYXNpIiwiRGVwYXJ0ZW1lbiBQZXJlbmNhbmFhbiBkYW4gVXRpbGl0YXMiLCJEaXZpc2kgUGVuZ2FtYW5hbiwgSzMgZGFuIExpbmdrdW5nYW4iLCJTZWtzaSBQZWxheWFuYW4gS2FyeWF3YW4iLCJTZWtzaSBIdWJ1bmdhbiBJbmR1c3RyaWFsIiwiU2Vrc2kgUmVtdW5lcmFzaSBkYW4gSFJJUyIsIkRlcGFydGVtZW4gUGVyc2lhcGFuIGRhbiBDZXRhayBQcm9kdWsgTm9uIFVhbmciLCJEZXBhcnRlbWVuIFBlbmp1YWxhbiAxIiwiRGVwYXJ0ZW1lbiBQZW5nZWxvbGFhbiBBc2V0IFBlcnVzYWhhYW4iLCJEaXJla3RvcmF0IFBlbmdlbWJhbmdhbiBVc2FoYSIsIkRlcGFydGVtZW4gUGVtYXNhcmFuIiwiRGVwYXJ0ZW1lbiBBa3VudGFuc2kiLCJEZXBhcnRlbWVuIEh1bWFuIFJlc291cmNlcyBCdXNpbmVzcyBQYXJ0bmVyIGRhbiBIdWJ1bmdhbiBJbmR1c3RyaWFsIiwiU2Vrc2kgRGVzYWluIiwiU2Vrc2kgQWt1bnRhbnNpIFVtdW0iLCJEaWdpdGFsIFNlcnZpY2UgT3BlcmF0aW9uIERlcGFydG1lbnQiLCJQZXJ1cmkgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IFNlY3Rpb24iLCJTZWtzaSBQZW5nZW1iYW5nYW4gSW5mcmFzdHJ1a3R1ciBUZWtub2xvZ2kgSW5mb3JtYXNpIiwiU2Vrc2kgUGVuZ2VtYmFuZ2FuIEFwbGlrYXNpIEludGVybmFsIiwiVW5pdCBQZWxheWFuYW4gS2VzZWhhdGFuIiwiU2Vrc2kgUGVtZWxpaGFyYWFuIEJhbmd1bmFuIGRhbiBQZW5hdGFhbiBMaW5na3VuZ2FuIl19LCJwb3J0YWwtcGVydXJpIjp7InJvbGVzIjpbInVtYV9wcm90ZWN0aW9uIl19LCJzaWhlcGktc3NvIjp7InJvbGVzIjpbIlVzZXIiLCJUZWtuaXNpIFRJIl19LCJhZG1pbi1jbGkiOnsicm9sZXMiOlsidW1hX3Byb3RlY3Rpb24iXX0sImR1bW15X3Byb2plY3QiOnsicm9sZXMiOlsiZGF0YSBhbmFsaXMgc2J1IHVhbmciLCJRdW1vbiIsIkludGVybmFsIFNQSSIsImRhdGEgYW5hbGlzIHBlbmdlbWJhbmdhbiB1c2FoYSIsImRhdGEgYW5hbGlzIHNidSBub24gdWFuZyIsIktlc2VoYXRhbiIsIkRhdGEgQW5hbGlzIFNQSSIsImRhdGEgYW5hbGlzIGRhZmFzdW0iLCJkYXRhIGFuYWxpcyBwcm9iaXMgaW50ZXJuYXNpb25hbCIsInN1cGVyIGFkbWluIiwiVGFza2ZvcmNlIENvdmlkIiwiU3VtbWFyeSIsIlNpbWFuZG9yIiwiSVRPQyBQZXJ1cmkiXX0sImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJ2aWV3LWFwcGxpY2F0aW9ucyIsInZpZXctY29uc2VudCIsInZpZXctZ3JvdXBzIiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJtYW5hZ2UtY29uc2VudCIsImRlbGV0ZS1hY2NvdW50Iiwidmlldy1wcm9maWxlIl19LCJlaW52b2ljZS1wZXJ1cmkiOnsicm9sZXMiOlsiUGVuanVybmFsIiwiUElDIFVuaXQgS2VyamEiXX0sIm1vbml0b3JpbmctcGVydXJpIjp7InJvbGVzIjpbIkFkbWluaXN0cmF0b3IiLCJVc2VyIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwic2lkIjoiOWZhOGEzNjMtMmY1ZC00NTdiLTg5M2ItNDRjNjBmNmI3ZDg1IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiI3NzgwIFdBSFlVIEVESSBTQU5UT1NPIiwicHJlZmVycmVkX3VzZXJuYW1lIjoid2FoeXUuc2FudG9zbyIsImdpdmVuX25hbWUiOiI3NzgwIiwiZmFtaWx5X25hbWUiOiJXQUhZVSBFREkgU0FOVE9TTyIsImVtYWlsIjoiMTkzMC43NzgwQHBlcnVyaS5jby5pZCJ9.KzQvHynfPkHP8RIh3543M_bGKBjUqEAUz2KxZao3NPY';
+
+      // Build the URL with access_token parameter
+      const chatBotBaseUrl = 'http://localhost:3000/';
+      const tokenUrl = `${chatBotBaseUrl}?access_token=${encodeURIComponent(SAMPLE_TOKEN)}`;
+
+      // Set the URL in the display and link
+      document.getElementById('token-url').textContent = tokenUrl;
+      document.getElementById('direct-link').href = tokenUrl;
+
+      function copyUrl() {
+        navigator.clipboard
+          .writeText(tokenUrl)
+          .then(() => {
+            alert('URL copied to clipboard!');
+          })
+          .catch(err => {
+            console.error('Failed to copy URL:', err);
+          });
+      }
+    </script>
+  </body>
+</html>

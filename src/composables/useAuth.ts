@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import type { Authority } from '../types/chat';
 import ssoService, { type UserProfile } from '../services/ssoService';
+import type { Authority } from '../types/chat';
 
 const isAuthenticated = ref(false);
 const currentUser = ref<string | null>(null);
@@ -24,7 +24,7 @@ export const useAuth = () => {
   const checkAuth = (): boolean => {
     try {
       const authData = ssoService.getAuthData();
-      
+
       console.log('Checking auth:', authData);
 
       if (authData.isAuthenticated && authData.authority && authData.token) {
@@ -41,10 +41,10 @@ export const useAuth = () => {
         userAuthority.value = authData.authority as Authority;
         userProfile.value = authData.profile;
         isInitialized.value = true;
-        
+
         // Configure axios with token
         ssoService.configureAxiosToken(authData.token);
-        
+
         console.log('Auth check: authenticated with authority', authData.authority);
         return true;
       } else {
@@ -91,7 +91,7 @@ export const useAuth = () => {
       setTimeout(() => {
         // Check if we have SSO data first
         const authData = ssoService.getAuthData();
-        
+
         if (authData.isAuthenticated && authData.token && authData.profile) {
           // Use existing SSO data
           isAuthenticated.value = true;
@@ -100,10 +100,10 @@ export const useAuth = () => {
           userAuthority.value = authority;
           userProfile.value = authData.profile;
 
-          console.log('SSO authentication successful with existing data:', { 
-            username: authData.profile.username, 
-            authority, 
-            token: authData.token 
+          console.log('SSO authentication successful with existing data:', {
+            username: authData.profile.username,
+            authority,
+            token: authData.token,
           });
           resolve(true);
         } else {
@@ -161,7 +161,7 @@ export const useAuth = () => {
   const logout = () => {
     // Clear SSO data
     ssoService.clearAuthData();
-    
+
     // Clear local state
     isAuthenticated.value = false;
     currentUser.value = null;
