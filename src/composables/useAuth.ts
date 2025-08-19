@@ -28,17 +28,17 @@ export const useAuth = () => {
       console.log('Checking auth:', authData);
 
       if (authData.isAuthenticated && authData.authority && authData.token) {
-        // Check if token is expired (clear only if in production)
-        const isProduction = import.meta.env.PROD || import.meta.env.NODE_ENV === 'production';
-        if (ssoService.isTokenExpired(authData.token)) {
-          if (isProduction) {
-            console.log('Token expired, clearing auth data');
-            logout();
-            return false;
-          } else {
-            console.log('⚠️ Token expired but skipping validation outside production');
-          }
-        }
+        // TODO: Check if token is expired (clear only if in production)
+        // const isProduction = import.meta.env.PROD || import.meta.env.NODE_ENV === 'production';
+        // if (ssoService.isTokenExpired(authData.token)) {
+        //   if (isProduction) {
+        //     console.log('Token expired, clearing auth data');
+        //     logout();
+        //     return false;
+        //   } else {
+        //     console.log('⚠️ Token expired but skipping validation outside production');
+        //   }
+        // }
 
         isAuthenticated.value = true;
         currentUser.value = authData.profile?.username || 'sso_user';
