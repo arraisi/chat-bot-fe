@@ -32,35 +32,61 @@
             </v-card-title>
 
             <v-card-text class="card-content">
-              <!-- Filter by Authority (for ALL authority users) -->
-              <div v-if="userAuthority === 'ALL'" class="filter-section">
-                <v-select
-                  v-model="filterAuthority"
-                  :items="filterAuthorityOptions"
-                  item-title="name"
-                  item-value="code"
-                  label="Filter by Authority"
-                  variant="outlined"
-                  dense
-                  clearable
-                  @update:model-value="refreshFilesList"
-                >
-                  <template #prepend-inner>
-                    <v-icon>mdi-filter</v-icon>
-                  </template>
-                </v-select>
+              <!-- Search and Filter Section -->
+              <div class="filter-section">
+                <v-row align="center" justify="space-between">
+                  <v-col cols="12" md="6">
+                    <v-text-field
+                      v-model="searchValue"
+                      append-inner-icon="mdi-magnify"
+                      label="Search files..."
+                      variant="outlined"
+                      density="compact"
+                      clearable
+                      @input="onSearchInput"
+                      @click:clear="onSearchClear"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6" v-if="userAuthority === 'ALL'">
+                    <v-select
+                      v-model="filterAuthority"
+                      :items="filterAuthorityOptions"
+                      item-title="name"
+                      item-value="code"
+                      label="Filter by Authority"
+                      variant="outlined"
+                      density="compact"
+                      clearable
+                      @update:model-value="onAuthorityFilterChange"
+                    >
+                      <template #prepend-inner>
+                        <v-icon>mdi-filter</v-icon>
+                      </template>
+                    </v-select>
+                  </v-col>
+                </v-row>
               </div>
 
               <!-- Data Table -->
               <div class="data-table-container">
-                <v-data-table
+                <v-data-table-server
                   :headers="tableHeaders"
                   :items="uploadedFiles"
                   :loading="loadingFilesList"
+                  :items-length="serverItemsLength"
+                  v-model:page="currentPage"
+                  v-model:items-per-page="itemsPerPage"
+                  v-model:sort-by="sortBy"
+                  @update:options="loadItems"
                   item-value="id"
                   class="files-data-table"
-                  :items-per-page="10"
-                  :items-per-page-options="[5, 10, 25, 50]"
+                  :items-per-page-options="[
+                    { value: 5, title: '5' },
+                    { value: 10, title: '10' },
+                    { value: 25, title: '25' },
+                    { value: 50, title: '50' },
+                    { value: 100, title: '100' },
+                  ]"
                   density="compact"
                 >
                   <template #loading>
@@ -128,7 +154,7 @@
                       </v-list>
                     </v-menu>
                   </template>
-                </v-data-table>
+                </v-data-table-server>
               </div>
             </v-card-text>
           </v-card>
@@ -339,6 +365,7 @@
     downloadUploadedFile,
     getUploadedFiles,
     uploadFileForTraining,
+    type DataTablesParams,
   } from '../services/uploadApi';
   import type { Authority, UploadedFile } from '../types/chat';
 
@@ -354,6 +381,16 @@
   const uploadedFiles = ref<UploadedFile[]>([]);
   const loadingFilesList = ref(false);
   const deleting = ref(false);
+
+  // Pagination state
+  const currentPage = ref(1);
+  const itemsPerPage = ref(10);
+  const totalItems = ref(0);
+  const searchValue = ref('');
+  const sortBy = ref([{ key: 'id', order: 'desc' as const }]);
+
+  // Server-side pagination options
+  const serverItemsLength = ref(0);
 
   // Modal state
   const showUploadModal = ref(false);
@@ -461,11 +498,52 @@
   });
 
   // Methods
-  const refreshFilesList = async () => {
+  const loadItems = async (options: any) => {
+    await refreshFilesList(options);
+  };
+
+  const refreshFilesList = async (options?: any) => {
     loadingFilesList.value = true;
     try {
       const authority = userAuthority.value === 'ALL' ? filterAuthority.value : userAuthority.value;
-      uploadedFiles.value = await getUploadedFiles(authority);
+
+      // Calculate start index for DataTables API
+      const page = options?.page || currentPage.value;
+      const itemsPerPageValue = options?.itemsPerPage || itemsPerPage.value;
+      const start = (page - 1) * itemsPerPageValue;
+
+      // Prepare sort parameters
+      let sortColumn = 0; // Default to ID column
+      let sortDirection: 'asc' | 'desc' = 'desc';
+
+      if (options?.sortBy && options.sortBy.length > 0) {
+        const sortItem = options.sortBy[0];
+        const columnIndex = tableHeaders.value.findIndex(header => header.key === sortItem.key);
+        if (columnIndex !== -1) {
+          sortColumn = columnIndex;
+          sortDirection = sortItem.order === 'desc' ? 'desc' : 'asc';
+        }
+      }
+
+      const params: DataTablesParams = {
+        start: start,
+        length: itemsPerPageValue,
+        authority: authority,
+        search: {
+          value: searchValue.value,
+        },
+        order: [
+          {
+            column: sortColumn,
+            dir: sortDirection,
+          },
+        ],
+      };
+
+      const response = await getUploadedFiles(params);
+      uploadedFiles.value = response.data;
+      serverItemsLength.value = response.recordsFiltered;
+
       console.log('Uploaded files loaded:', uploadedFiles.value);
     } catch (error) {
       console.error('Failed to load files:', error);
@@ -473,6 +551,27 @@
     } finally {
       loadingFilesList.value = false;
     }
+  };
+
+  // Search and filter handlers
+  let searchTimeout: ReturnType<typeof setTimeout>;
+  const onSearchInput = () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      currentPage.value = 1; // Reset to first page when searching
+      refreshFilesList();
+    }, 500); // Debounce search
+  };
+
+  const onSearchClear = () => {
+    searchValue.value = '';
+    currentPage.value = 1;
+    refreshFilesList();
+  };
+
+  const onAuthorityFilterChange = () => {
+    currentPage.value = 1; // Reset to first page when filtering
+    refreshFilesList();
   };
 
   const deleteFile = (file: UploadedFile) => {
