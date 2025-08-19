@@ -61,16 +61,16 @@
         </template>
         <v-list density="comfortable" min-width="200" color="white" class="account-menu">
           <!-- Profile/Account Settings -->
-          <v-list-item @click="handlePreferences">
+          <!-- <v-list-item @click="handlePreferences">
             <template #prepend>
               <v-icon color="black" style="opacity: 1">mdi-account-cog</v-icon>
             </template>
             <v-list-item-title class="text-black">Profile Settings</v-list-item-title>
             <v-list-item-subtitle class="text-black" style="opacity: 0.7">User settings</v-list-item-subtitle>
-          </v-list-item>
+          </v-list-item> -->
 
           <!-- Theme Settings Expandable -->
-          <v-list-group>
+          <!-- <v-list-group>
             <template #activator="{ props: groupProps }">
               <v-list-item v-bind="groupProps">
                 <template #prepend>
@@ -92,7 +92,7 @@
               </template>
               <v-list-item-title class="text-black">Dark</v-list-item-title>
             </v-list-item>
-          </v-list-group>
+          </v-list-group> -->
 
           <!-- Logout -->
           <v-list-item @click="handleLogout">

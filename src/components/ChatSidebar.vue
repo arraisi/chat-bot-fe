@@ -4,7 +4,7 @@
     <div class="sidebar-logo">
       <v-list-item class="pa-4">
         <div class="text-center w-100">
-          <img src="../assets/aiva_new_logo.png" alt="AIVA Logo" class="company-logo" />
+          <img src="../assets/aiva_new_logo_putih.png" alt="AIVA Logo" class="company-logo" />
         </div>
       </v-list-item>
     </div>
@@ -185,12 +185,11 @@
   .sidebar-logo {
     flex-shrink: 0;
     background-color: rgb(var(--v-theme-background));
-    padding: 16px 0;
+    padding: 0px 0;
   }
 
   .company-logo {
-    max-width: 180px;
-    max-height: 50px;
+    max-width: 240px;
     width: auto;
     height: auto;
     object-fit: contain;

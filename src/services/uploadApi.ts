@@ -56,7 +56,7 @@ export const uploadFileForTraining = async (
       formData.append('description', description);
     }
 
-    const response = await uploadApi.post<UploadFileResponse>('/upload', formData, {
+    const response = await uploadApi.post<UploadFileResponse>('/api/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -79,7 +79,7 @@ export const uploadFileForTraining = async (
  */
 export const getUploadedFiles = async (authority?: Authority | null): Promise<UploadedFile[]> => {
   try {
-    const response = await uploadApi.get<UploadedFilesResponse>('/uploaded-files');
+    const response = await uploadApi.get<UploadedFilesResponse>('/api/uploaded-files');
 
     let files = response.data.data;
 
@@ -112,7 +112,7 @@ export const getUploadedFiles = async (authority?: Authority | null): Promise<Up
  */
 export const deleteUploadedFile = async (fileId: string | number): Promise<void> => {
   try {
-    await uploadApi.delete(`/uploaded-files/${fileId}`);
+    await uploadApi.delete(`/api/uploaded-files/${fileId}`);
     console.log(`Deleted file with ID: ${fileId}`);
   } catch (error) {
     console.error('Error deleting file:', error);
@@ -131,7 +131,7 @@ export const deleteUploadedFile = async (fileId: string | number): Promise<void>
  */
 export const downloadUploadedFile = async (fileId: string | number, fileName: string): Promise<void> => {
   try {
-    const response = await uploadApi.get(`/uploaded-files/${fileId}/download`, {
+    const response = await uploadApi.get(`/api/uploaded-files/${fileId}/download`, {
       responseType: 'blob',
     });
 
