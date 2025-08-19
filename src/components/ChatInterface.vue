@@ -814,7 +814,7 @@
     display: flex;
     flex-direction: column;
     height: calc(100vh - 64px); /* Subtract app bar height from total height */
-    margin-top: 64px; /* Push content below app bar */
+    margin-top: 0px; /* Push content below app bar */
   }
 
   .chat-messages-container {

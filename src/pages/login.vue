@@ -272,18 +272,6 @@
     };
   });
 
-  // Check if SSO authentication is needed and show modal
-  const checkAndShowSSOModal = () => {
-    const authData = ssoService.getAuthData();
-    const hasValidToken = authData.isAuthenticated && authData.token;
-    const hasAuthority = authData.authority;
-
-    if (!hasValidToken || !hasAuthority) {
-      console.log('🔔 Showing SSO modal - missing authentication data');
-      showSSOModal.value = true;
-    }
-  };
-
   // Redirect to SSO Portal Mock (development only)
   const redirectToSSOPortal = () => {
     if (!isDevelopment.value) {
