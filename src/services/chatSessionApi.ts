@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { Authority, ChatSession, Message } from '../types/chat';
+import ssoService from './ssoService';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -10,13 +11,23 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to include auth token if needed
+// Add request interceptor to include auth token and user data
 api.interceptors.request.use(config => {
-  // Add your auth token here if needed
-  // const token = localStorage.getItem('auth-token')
-  // if (token) {
-  //   config.headers.Authorization = `Bearer ${token}`
-  // }
+  // Get SSO auth token
+  const authData = ssoService.getAuthData();
+  if (authData.token) {
+    config.headers.Authorization = `Bearer ${authData.token}`;
+  }
+
+  // Add user account data to request if available
+  const userAccount = ssoService.getCurrentUserAccount();
+  if (userAccount && config.data) {
+    config.data = {
+      ...config.data,
+      user_account: userAccount,
+    };
+  }
+
   return config;
 });
 
@@ -91,14 +102,47 @@ export const getChatSessions = async (userId?: string, limit: number = 50): Prom
 /**
  * Create a new chat session
  */
-export const createChatSession = async (sessionData: {
-  session_id?: string;
-  title?: string;
-  authority?: Authority;
-  user_id?: string;
-}): Promise<ChatSession> => {
+export const createChatSession = async (
+  sessionData: {
+    session_id?: string;
+    title?: string;
+    authority?: Authority;
+    user_id?: string;
+  } = {}
+): Promise<ChatSession> => {
   try {
-    const response = await api.post<ChatSessionApiResponse>('/chat-sessions', sessionData);
+    // Get current user account and profile from SSO
+    const userAccount = ssoService.getCurrentUserAccount();
+    const userProfile = ssoService.getUserProfile();
+
+    // Get user_id from userProfile.givenName - throw error if not available
+    let userId: string;
+    if (sessionData.user_id) {
+      userId = sessionData.user_id;
+    } else if (userProfile?.givenName) {
+      userId = userProfile.givenName;
+    } else {
+      throw new Error(
+        'User ID not available: userProfile.givenName is empty. Please ensure SSO authentication is complete.'
+      );
+    }
+
+    console.log(
+      '🔍 Creating chat session with user_id:',
+      userId,
+      'from userProfile.givenName:',
+      userProfile?.givenName
+    );
+
+    // Merge user account data with session data
+    const requestData = {
+      ...sessionData,
+      user_account: userAccount,
+      authority: sessionData.authority || userAccount?.authority,
+      user_id: userId,
+    };
+
+    const response = await api.post<ChatSessionApiResponse>('/chat-sessions', requestData);
 
     if (response.data.success && response.data.session) {
       return transformSessionFromApi(response.data.session);
@@ -187,7 +231,21 @@ export const sendMessageToSession = async (
   botResponse?: any;
 }> => {
   try {
-    const response = await api.post<SendMessageResponse>(`/chat-sessions/${sessionId}/messages`, messageData);
+    // Get current user account from SSO
+    const userAccount = ssoService.getCurrentUserAccount();
+
+    // Merge user account data with message data
+    const requestData = {
+      ...messageData,
+      user_account: userAccount,
+      authority: messageData.authority || userAccount?.authority,
+      metadata: {
+        ...messageData.metadata,
+        user_account: userAccount,
+      },
+    };
+
+    const response = await api.post<SendMessageResponse>(`/chat-sessions/${sessionId}/messages`, requestData);
 
     if (response.data.success) {
       return {
@@ -275,6 +333,7 @@ function transformSessionFromApi(apiSession: any): ChatSession {
     authority: apiSession.authority,
     messageCount: apiSession.message_count,
     lastActivityAt: apiSession.last_activity_at ? new Date(apiSession.last_activity_at) : null,
+    user_account: apiSession.user_account,
   };
 }
 
@@ -291,6 +350,7 @@ function transformMessageFromApi(apiMessage: any): Message {
     category: apiMessage.category,
     authority: apiMessage.authority,
     metadata: apiMessage.metadata,
+    user_account: apiMessage.user_account,
   };
 }
 
