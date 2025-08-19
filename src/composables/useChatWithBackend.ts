@@ -9,6 +9,7 @@ import {
   updateChatSession,
 } from '../services/chatSessionApi';
 import type { Authority, ChatSession, Message } from '../types/chat';
+import { useAuth } from './useAuth';
 
 export const useChat = () => {
   // Store chat sessions (fully backend-driven)
@@ -16,6 +17,14 @@ export const useChat = () => {
   const currentSessionId = ref<string | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+
+  // Get auth data including user profile
+  const { userProfile } = useAuth();
+
+  // Get userId from userProfile.givenName
+  const userId = computed(() => {
+    return userProfile.value?.givenName || 'default-user';
+  });
 
   // Get current active session
   const currentSession = computed(() => {
@@ -42,9 +51,12 @@ export const useChat = () => {
       isLoading.value = true;
       error.value = null;
 
-      const sessions = await getChatSessions();
+      // Use userId from userProfile.givenName
+      console.log('🔍 Loading sessions for userId:', userId.value);
+      const sessions = await getChatSessions(userId.value);
       chatSessions.value = sessions;
 
+      console.log('✅ Loaded sessions:', sessions.length, 'for user:', userId.value);
       return sessions;
     } catch (err) {
       console.error('Failed to load sessions from backend:', err);
@@ -65,8 +77,10 @@ export const useChat = () => {
         session_id: generateId(),
         title: sessionData?.title || 'New Chat',
         authority: sessionData?.authority || 'SDM',
-        user_id: sessionData?.user_id,
+        user_id: sessionData?.user_id || userId.value, // Use userId from userProfile.givenName
       };
+
+      console.log('🆕 Creating new session for userId:', newSessionData.user_id);
 
       // Create session on backend
       const newSession = await createChatSession(newSessionData);
@@ -75,6 +89,7 @@ export const useChat = () => {
       chatSessions.value.unshift(newSession);
       currentSessionId.value = newSession.id;
 
+      console.log('✅ Created new session:', newSession.id, 'for user:', newSessionData.user_id);
       return newSession;
     } catch (err) {
       console.error('Failed to create session:', err);
@@ -231,9 +246,11 @@ export const useChat = () => {
   };
 
   // Search sessions
-  const searchSessions = async (query: string, userId?: string) => {
+  const searchSessions = async (query: string, searchUserId?: string) => {
     try {
-      return await searchChatSessions(query, userId);
+      // Use provided userId or default to current user's userId
+      const targetUserId = searchUserId || userId.value;
+      return await searchChatSessions(query, targetUserId);
     } catch (err) {
       console.error('Search failed:', err);
       error.value = 'Search failed';
@@ -268,6 +285,7 @@ export const useChat = () => {
     isLoading,
     error,
     currentSessionId,
+    userId, // Export userId for debugging/usage
 
     // Actions
     createNewSession,

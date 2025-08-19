@@ -887,6 +887,7 @@
     background-color: #f5f5f5;
     position: relative;
     min-height: 0; /* Allow flex shrinking */
+    max-height: calc(100vh - var(--app-bar-height) - 120px); /* Reserve space for input */
   }
 
   .chat-messages-container::-webkit-scrollbar {
@@ -914,6 +915,7 @@
     min-height: 100%; /* Ensure it takes at least full container height */
     display: flex;
     flex-direction: column;
+    box-sizing: border-box; /* Include padding in height calculations */
   }
 
   .empty-state {
@@ -1068,10 +1070,12 @@
   .messages-list {
     padding-bottom: 20px;
     padding-top: 20px;
+    margin-top: 50px;
     flex: 1; /* Take available space */
     display: flex;
     flex-direction: column;
-    min-height: 0; /* Allow flex shrinking */
+    overflow-y: visible; /* Allow content to be visible */
+    min-height: fit-content; /* Ensure content is not cut */
   }
 
   .chat-input-container {
@@ -1084,6 +1088,7 @@
     width: 100%;
     max-height: 30vh; /* Prevent input from taking too much space */
     padding-bottom: var(--safe-area-bottom); /* Account for device safe areas */
+    margin-top: auto; /* Push to bottom */
   }
 
   /* Mobile responsiveness */
@@ -1094,6 +1099,10 @@
 
     .chat-main-content {
       padding-top: var(--app-bar-height);
+    }
+
+    .chat-messages-container {
+      max-height: calc(100vh - var(--app-bar-height) - 140px); /* More space for input on mobile */
     }
 
     .chat-messages {
@@ -1108,6 +1117,8 @@
     .messages-list {
       padding-top: 12px;
       padding-bottom: 12px;
+      margin-top: 50px;
+      overflow-y: visible; /* Ensure messages are not cut on mobile */
     }
   }
 
@@ -1119,6 +1130,10 @@
 
     .chat-main-content {
       padding-top: var(--app-bar-height);
+    }
+
+    .chat-messages-container {
+      max-height: calc(100vh - var(--app-bar-height) - 130px); /* Space for input on tablet */
     }
 
     .chat-messages {
@@ -1133,6 +1148,8 @@
     .messages-list {
       padding-top: 16px;
       padding-bottom: 16px;
+      margin-top: 50px;
+      overflow-y: visible;
     }
   }
 
