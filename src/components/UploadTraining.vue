@@ -248,24 +248,51 @@
     </v-dialog>
 
     <!-- Upload Progress Dialog -->
-    <v-dialog v-model="showUploadProgress" persistent max-width="400">
+    <v-dialog v-model="showUploadProgress" persistent max-width="600">
       <v-card class="upload-progress-dialog">
         <v-card-title class="text-center upload-progress-title">
           <v-icon start color="primary">mdi-upload</v-icon>
-          Uploading Files
+          Uploading Files ({{ currentUploadIndex + 1 }} of {{ modalSelectedFiles.length }})
         </v-card-title>
         <v-card-text class="upload-progress-content">
+          <!-- Overall Progress -->
           <div class="text-center mb-4">
             <v-progress-circular :model-value="uploadProgress" size="80" width="8" color="primary">
               {{ Math.round(uploadProgress) }}%
             </v-progress-circular>
           </div>
-          <p class="text-center upload-progress-text">
-            Uploading {{ currentUploadIndex + 1 }} of {{ modalSelectedFiles.length }} files...
-          </p>
-          <p class="text-center text-caption upload-progress-filename">
-            {{ currentUploadFile }}
-          </p>
+
+          <!-- Current File Progress -->
+          <div class="mb-4">
+            <p class="text-center upload-progress-text mb-2">
+              Currently uploading: <strong>{{ currentUploadFile }}</strong>
+            </p>
+          </div>
+
+          <!-- Individual File Progress List -->
+          <div class="file-progress-list">
+            <v-list density="compact" class="file-progress-items">
+              <v-list-item v-for="(fileStatus, index) in fileUploadStatuses" :key="index" class="file-progress-item">
+                <template #prepend>
+                  <v-icon :color="getStatusColor(fileStatus.status)" class="me-2">
+                    {{ getStatusIcon(fileStatus.status) }}
+                  </v-icon>
+                </template>
+
+                <v-list-item-title class="file-progress-name">
+                  {{ fileStatus.name }}
+                </v-list-item-title>
+
+                <template #append>
+                  <div class="file-progress-status">
+                    <v-chip :color="getStatusColor(fileStatus.status)" size="small" variant="tonal">
+                      {{ getStatusText(fileStatus.status) }}
+                    </v-chip>
+                  </div>
+                </template>
+              </v-list-item>
+            </v-list>
+          </div>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -348,6 +375,13 @@
   const uploadProgress = ref(0);
   const currentUploadIndex = ref(0);
   const currentUploadFile = ref('');
+  const fileUploadStatuses = ref<
+    Array<{
+      name: string;
+      status: 'pending' | 'uploading' | 'success' | 'failed';
+      progress: number;
+    }>
+  >([]);
 
   // Delete dialog
   const showDeleteDialog = ref(false);
@@ -505,6 +539,52 @@
     return dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString();
   };
 
+  // Upload progress helper functions
+  const getStatusIcon = (status: string): string => {
+    switch (status) {
+      case 'pending':
+        return 'mdi-clock-outline';
+      case 'uploading':
+        return 'mdi-upload';
+      case 'success':
+        return 'mdi-check-circle';
+      case 'failed':
+        return 'mdi-alert-circle';
+      default:
+        return 'mdi-help-circle';
+    }
+  };
+
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'pending':
+        return 'grey';
+      case 'uploading':
+        return 'primary';
+      case 'success':
+        return 'success';
+      case 'failed':
+        return 'error';
+      default:
+        return 'grey';
+    }
+  };
+
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case 'pending':
+        return 'Pending';
+      case 'uploading':
+        return 'Uploading';
+      case 'success':
+        return 'Completed';
+      case 'failed':
+        return 'Failed';
+      default:
+        return 'Unknown';
+    }
+  };
+
   // New helper methods for data table
   const getFileTypeFromName = (filename: string): string => {
     const extension = filename.split('.').pop()?.toLowerCase();
@@ -549,6 +629,7 @@
     modalSelectedFiles.value = [];
     modalSelectedAuthority.value = null;
     modalSelectedCategory.value = '';
+    fileUploadStatuses.value = [];
     clearModalErrors();
   };
 
@@ -642,14 +723,29 @@
     showUploadProgress.value = true;
     uploadProgress.value = 0;
 
-    try {
-      const totalFiles = modalSelectedFiles.value.length;
+    const totalFiles = modalSelectedFiles.value.length;
+    const uploadResults: { success: string[]; failed: string[] } = {
+      success: [],
+      failed: [],
+    };
 
-      for (let i = 0; i < totalFiles; i++) {
-        const file = modalSelectedFiles.value[i];
-        currentUploadIndex.value = i;
-        currentUploadFile.value = file.name;
+    // Initialize file upload statuses
+    fileUploadStatuses.value = modalSelectedFiles.value.map(file => ({
+      name: file.name,
+      status: 'pending' as const,
+      progress: 0,
+    }));
 
+    // Process files one by one, continuing even if one fails
+    for (let i = 0; i < totalFiles; i++) {
+      const file = modalSelectedFiles.value[i];
+      currentUploadIndex.value = i;
+      currentUploadFile.value = file.name;
+
+      // Update current file status to uploading
+      fileUploadStatuses.value[i].status = 'uploading';
+
+      try {
         // Use the actual upload API with category parameter
         await uploadFileForTraining(
           file,
@@ -658,22 +754,55 @@
           `Uploaded via modal - Category: ${modalSelectedCategory.value}`
         );
 
-        uploadProgress.value = ((i + 1) / totalFiles) * 100;
+        // Update file status to success
+        fileUploadStatuses.value[i].status = 'success';
+        fileUploadStatuses.value[i].progress = 100;
+
+        uploadResults.success.push(file.name);
+        console.log(`Successfully uploaded: ${file.name}`);
+      } catch (error) {
+        // Update file status to failed
+        fileUploadStatuses.value[i].status = 'failed';
+
+        uploadResults.failed.push(file.name);
+        console.error(`Failed to upload ${file.name}:`, error);
       }
 
-      showSuccess(`Successfully uploaded ${totalFiles} file${totalFiles > 1 ? 's' : ''}`);
-      closeUploadModal();
+      // Update overall progress regardless of success/failure
+      uploadProgress.value = ((i + 1) / totalFiles) * 100;
+    }
 
+    // Show comprehensive results
+    const successCount = uploadResults.success.length;
+    const failedCount = uploadResults.failed.length;
+
+    if (successCount > 0 && failedCount === 0) {
+      // All files uploaded successfully
+      showSuccess(`Successfully uploaded all ${successCount} file${successCount > 1 ? 's' : ''}`);
+    } else if (successCount > 0 && failedCount > 0) {
+      // Some files succeeded, some failed
+      showSuccess(`Successfully uploaded ${successCount} file${successCount > 1 ? 's' : ''}`);
+      showError(
+        `Failed to upload ${failedCount} file${failedCount > 1 ? 's' : ''}: ${uploadResults.failed.join(', ')}`
+      );
+    } else if (failedCount > 0) {
+      // All files failed
+      showError(
+        `Failed to upload all ${failedCount} file${failedCount > 1 ? 's' : ''}: ${uploadResults.failed.join(', ')}`
+      );
+    }
+
+    // Close modal and refresh list if at least one file was successful
+    if (successCount > 0) {
+      closeUploadModal();
       // Refresh the files list to show the newly uploaded files
       await refreshFilesList();
-    } catch (error) {
-      console.error('Upload error:', error);
-      showError('Failed to upload files. Please try again.');
-    } finally {
-      modalUploading.value = false;
-      showUploadProgress.value = false;
-      uploadProgress.value = 0;
     }
+
+    // Always clean up the upload state
+    modalUploading.value = false;
+    showUploadProgress.value = false;
+    uploadProgress.value = 0;
   };
 
   const showSuccess = (message: string) => {
@@ -1018,6 +1147,60 @@
     background-color: #ffffff !important;
     color: #2c3e50 !important;
     padding: 1.5rem !important;
+  }
+
+  /* File Progress List Styling */
+  .file-progress-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #f1f3f4;
+    border-radius: 8px;
+    background-color: #fafafa;
+  }
+
+  .file-progress-items {
+    background-color: transparent !important;
+  }
+
+  .file-progress-item {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+    margin: 2px 4px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .file-progress-item:last-child {
+    border-bottom: none !important;
+  }
+
+  .file-progress-item:hover {
+    background-color: #f8f9fa !important;
+  }
+
+  .file-progress-name {
+    color: #2c3e50 !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+  }
+
+  .file-progress-status {
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .upload-progress-text {
+    color: #2c3e50;
+    font-weight: 500;
+  }
+
+  .upload-progress-filename {
+    color: #6c757d;
+    font-style: italic;
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 6px;
+    margin: 0.5rem 0;
   }
 
   /* Delete Modal Light Theme Styling */
