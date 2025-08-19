@@ -16,75 +16,93 @@ const fallbackRoutes = [
     name: 'Home',
     component: () => import('../pages/index.vue'),
   },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../pages/login.vue'),
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../pages/register.vue'),
+  },
 ];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL || '/chat-bot-fe/'),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: routes.length > 0 ? routes : fallbackRoutes,
 });
 
-// SSO Token handling
-const handleSSOToken = () => {
-  console.log("SSO token handler initialized");
-  
-  window.addEventListener("message", (event) => {
-    console.log("Received SSO event", event);
-    
-    // Validate origin - update this to match your SSO origin
-    if (event.origin !== import.meta.env.VITE_APP_ORIGIN) return;
+// Development debug info (can be removed in production)
+if (import.meta.env.DEV) {
+  console.log('Router initialized with base URL:', import.meta.env.BASE_URL);
+  console.log('Using auto-routes:', routes.length > 0 ? 'Yes' : 'No (fallback)');
+  console.log('Total routes available:', router.getRoutes().length);
+}
 
-    if (event.data === "ping") {
-      (event.source as Window)?.postMessage("ready", event.origin);
-    }
+// SSO Token handling from query parameters
+const handleSSOToken = (route: any) => {
+  console.log('Checking for SSO token in query parameters');
 
-    if (event.data.token) {
-      console.log("Received SSO token:", event.data.token);
-      
-      try {
-        // Decode JWT token using SSO service
-        const tokenPayload = ssoService.decodeToken(event.data.token);
-        if (!tokenPayload) {
-          throw new Error("Failed to decode token");
-        }
+  // Check for access_token in query parameters
+  const accessToken = route.query.access_token;
 
-        console.log("Decoded token payload:", tokenPayload);
+  if (accessToken && typeof accessToken === 'string') {
+    console.log('Found access_token in query parameters');
 
-        // Extract user authority from aiva-peruri roles
-        const userAuthority = ssoService.extractUserAuthority(tokenPayload);
-
-        if (userAuthority) {
-          // Create user profile
-          const userProfile = ssoService.createUserProfile(tokenPayload);
-          
-          // Store authentication data
-          ssoService.storeAuthData(event.data.token, userAuthority, userProfile);
-
-          console.log("User authenticated with authority:", userAuthority);
-          console.log("User profile:", userProfile);
-          
-          // Send confirmation back to parent
-          (event.source as Window)?.postMessage("token_received", event.origin);
-          
-          // Redirect to home if currently on login/register page
-          if (window.location.pathname === '/login' || window.location.pathname === '/register') {
-            window.location.href = '/';
-          }
-        } else {
-          console.error("No aiva-peruri roles found in token");
-          ssoService.clearAuthData();
-        }
-      } catch (error) {
-        console.error("Error processing SSO token:", error);
-        ssoService.clearAuthData();
+    try {
+      // Decode JWT token using SSO service
+      const tokenPayload = ssoService.decodeToken(accessToken);
+      if (!tokenPayload) {
+        throw new Error('Failed to decode token');
       }
+
+      console.log('Decoded token payload:', tokenPayload);
+
+      // Extract user authority from aiva-peruri roles
+      const userAuthority = ssoService.extractUserAuthority(tokenPayload);
+
+      if (userAuthority) {
+        // Create user profile
+        const userProfile = ssoService.createUserProfile(tokenPayload);
+
+        // Store authentication data
+        ssoService.storeAuthData(accessToken, userAuthority, userProfile);
+
+        console.log('User authenticated with authority:', userAuthority);
+        console.log('User profile:', userProfile);
+
+        // Remove access_token from URL to clean up the URL
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('access_token');
+        window.history.replaceState({}, document.title, cleanUrl.toString());
+
+        return true; // Token processed successfully
+      } else {
+        console.error('No aiva-peruri roles found in token');
+        ssoService.clearAuthData();
+        return false;
+      }
+    } catch (error) {
+      console.error('Error processing SSO token:', error);
+      ssoService.clearAuthData();
+      return false;
     }
-  });
+  }
+
+  return false; // No token found
 };
 
 // Default route guard with SSO support
 router.beforeEach((to, from, next) => {
-  // Initialize SSO token handler
-  handleSSOToken();
+  // Check for SSO token in query parameters first
+  const tokenProcessed = handleSSOToken(to);
+
+  if (tokenProcessed) {
+    // Token was processed, redirect to clean URL
+    next('/');
+    return;
+  }
 
   // Check if user is going to login page or already authenticated
   if (to.path === '/login') {
@@ -104,7 +122,7 @@ router.beforeEach((to, from, next) => {
   if (authData.isAuthenticated && authData.authority && authData.token) {
     // Check if token is expired
     if (ssoService.isTokenExpired(authData.token)) {
-      console.log("Token expired, clearing auth data");
+      console.log('Token expired, clearing auth data');
       ssoService.clearAuthData();
       next('/login');
       return;
