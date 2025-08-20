@@ -79,7 +79,7 @@
     <!-- Footer with disclaimer and branding -->
     <div class="chat-footer">
       <div class="disclaimer-text">
-        Informasi yang diberikan oleh AIVA chatbot dihasilkan oleh AI dan belum tentu akurat. Silakan lakukan pengecekan
+        Informasi yang diberikan oleh AIVA dihasilkan oleh AI dan belum tentu akurat. Silakan lakukan pengecekan
         ulang dengan sumber terkait.
       </div>
       <div class="powered-by">Powered by <strong>NUTANIX</strong></div>

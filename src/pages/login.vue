@@ -49,7 +49,7 @@
             block
             :loading="loading"
           >
-            Lanjutkan ke Chat Bot
+            Lanjutkan ke aplikasi
           </v-btn>
         </div>
       </div>
@@ -127,22 +127,22 @@
     {
       code: 'ALL',
       name: 'Semua Akses',
-      description: 'Akses penuh ke semua fitur Chat Bot',
+      description: 'Akses penuh ke semua fitur aplikasi',
     },
     {
       code: 'SDM',
       name: 'SDM',
-      description: 'Akses Chat Bot untuk divisi Sumber Daya Manusia',
+      description: 'Akses aplikasi untuk divisi Sumber Daya Manusia',
     },
     {
       code: 'HUKUM',
       name: 'Hukum',
-      description: 'Akses Chat Bot untuk divisi Hukum',
+      description: 'Akses aplikasi untuk divisi Hukum',
     },
     {
       code: 'ADMIN',
       name: 'Administrator',
-      description: 'Akses administrasi sistem Chat Bot',
+      description: 'Akses administrasi sistem aplikasi',
     },
   ];
 

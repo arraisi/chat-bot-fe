@@ -145,7 +145,7 @@
                     <!-- <v-icon size="80" color="primary" class="mb-4 mt-8">mdi-robot-excited</v-icon> -->
                     <!-- <h2 class="mb-2 text-h4">Welcome to AIVA</h2> -->
                     <p class="text-body-1 text-medium-emphasis mb-4">
-                      AI Virtual Assistant untuk informasi Aiva. Pilih kategori dan mulai percakapan!
+                      Aiva, Asisten Virtual AI. Pilih kategori dan mulai percakapan!
                     </p>
 
                     <!-- Suggestion Questions (Auto-selected first category) -->
