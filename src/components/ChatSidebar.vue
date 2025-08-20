@@ -124,7 +124,9 @@
           </v-avatar>
         </template>
 
-        <v-list-item-title class="font-weight-medium text-white">User</v-list-item-title>
+        <v-list-item-title class="font-weight-medium text-white">{{
+          userProfile?.familyName || 'User'
+        }}</v-list-item-title>
         <v-list-item-subtitle class="text-white" style="opacity: 0.8">Welcome Back!</v-list-item-subtitle>
 
         <!-- <template #append>
@@ -143,7 +145,7 @@
   import { useAuth } from '../composables/useAuth';
   import type { ChatSession } from '../types/chat';
 
-  const { hasAuthority, hasAnyAuthority, getUserRoles } = useAuth();
+  const { hasAuthority, hasAnyAuthority, getUserRoles, userProfile } = useAuth();
 
   // Check if user has ADMIN role for upload functionality
   const hasAdminRole = computed(() => {
