@@ -53,7 +53,7 @@ export const uploadFileForTraining = async (
       formData.append('description', description);
     }
 
-    const response = await uploadApi.post<UploadFileResponse>('/api/upload', formData, {
+    const response = await uploadApi.post<UploadFileResponse>('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
