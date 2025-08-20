@@ -79,8 +79,8 @@
     <!-- Footer with disclaimer and branding -->
     <div class="chat-footer">
       <div class="disclaimer-text">
-        Informasi yang diberikan oleh AIVA dihasilkan oleh AI dan belum tentu akurat. Silakan lakukan pengecekan
-        ulang dengan sumber terkait.
+        Informasi yang diberikan oleh AIVA dihasilkan oleh AI dan belum tentu akurat. Silakan lakukan pengecekan ulang
+        dengan sumber terkait.
       </div>
       <div class="powered-by">Powered by <strong>NUTANIX</strong></div>
     </div>
@@ -127,6 +127,8 @@
 
   // Define categories based on user authority
   const getCategoriesByAuthority = (authority: Authority | null): CategoryOption[] => {
+    const allCategorySuggestions = [''];
+
     const codeOfConductSuggestions = [
       'Bagaimana Peruri mengelola risiko benturan kepentingan dalam pengambilan keputusan strategis dan pengadaan barang/jasa?',
       'Apa saja tanggung jawab pemimpin Peruri dalam membangun budaya kepatuhan terhadap Pedoman Etika Perilaku, dan bagaimana pelaksanaannya diukur?',
@@ -203,6 +205,13 @@
       case 'HUKUM':
         return [
           {
+            value: 'all',
+            label: 'All',
+            description: 'Search across all categories',
+            icon: 'mdi-view-grid',
+            suggestions: allCategorySuggestions,
+          },
+          {
             value: 'code-of-conduct',
             label: 'Code of Conduct',
             description: 'Pedoman etika perilaku dan standar',
@@ -234,6 +243,13 @@
       case 'SDM':
         return [
           {
+            value: 'all',
+            label: 'All',
+            description: 'Search across all categories',
+            icon: 'mdi-view-grid',
+            suggestions: allCategorySuggestions,
+          },
+          {
             value: 'manual-tjsl',
             label: 'Manual TJSL',
             description: 'Tanggung Jawab Sosial dan Lingkungan',
@@ -250,6 +266,13 @@
         ];
       case 'ADMIN':
         return [
+          {
+            value: 'all',
+            label: 'All',
+            description: 'Search across all categories',
+            icon: 'mdi-view-grid',
+            suggestions: allCategorySuggestions,
+          },
           {
             value: 'it-corporate-governance',
             label: 'IT Corporate Governance',
@@ -274,6 +297,13 @@
         ];
       case 'ALL':
         return [
+          {
+            value: 'all',
+            label: 'All',
+            description: 'Search across all categories',
+            icon: 'mdi-view-grid',
+            suggestions: allCategorySuggestions,
+          },
           {
             value: 'code-of-conduct',
             label: 'Code of Conduct',
@@ -341,6 +371,13 @@
       default:
         return [
           {
+            value: 'all',
+            label: 'All',
+            description: 'Search across all categories',
+            icon: 'mdi-view-grid',
+            suggestions: allCategorySuggestions,
+          },
+          {
             value: 'general',
             label: 'General',
             description: 'General inquiries',
@@ -391,7 +428,8 @@
 
     const message = inputMessage.value.trim();
     if (message) {
-      emit('send-message', message, selectedCategory.value);
+      const categoryToSend = selectedCategory.value === 'all' ? '' : selectedCategory.value;
+      emit('send-message', message, categoryToSend);
       inputMessage.value = '';
     }
   };
