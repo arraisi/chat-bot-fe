@@ -202,18 +202,18 @@ class SSOService {
    * Clear all authentication data
    */
   public clearAuthData(): void {
-    console.log('🧹 SSO: Clearing all authentication data...');
+    // console.log('🧹 SSO: Clearing all authentication data...');
 
     // Clear SSO-related localStorage items
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userAuthority');
-    localStorage.removeItem('ssoToken');
-    localStorage.removeItem('userProfile');
+    // localStorage.removeItem('isAuthenticated');
+    // localStorage.removeItem('userAuthority');
+    // localStorage.removeItem('ssoToken');
+    // localStorage.removeItem('userProfile');
 
     // Remove authorization header from axios
     if (axios.defaults.headers.common) {
-      delete axios.defaults.headers.common['Authorization'];
-      console.log('🧹 SSO: Removed axios authorization header');
+      // delete axios.defaults.headers.common['Authorization'];
+      // console.log('🧹 SSO: Removed axios authorization header');
     }
 
     console.log('🧹 SSO: Authentication data cleared successfully');
