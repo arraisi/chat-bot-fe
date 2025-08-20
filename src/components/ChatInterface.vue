@@ -666,8 +666,8 @@
   const appBarStyle = computed(() => {
     const hasDrawer = sidebarOpen.value && !isSmallScreen.value;
     return {
-      marginLeft: hasDrawer ? '280px' : '0px',
-      width: hasDrawer ? 'calc(100% - 280px)' : '100%',
+      marginLeft: hasDrawer ? '279px' : '0px',
+      width: hasDrawer ? 'calc(100% - 279px)' : '100%',
       transition: 'all 0.3s ease-in-out',
     };
   });
@@ -937,7 +937,7 @@
 
   .category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(279px, 1fr));
     gap: 16px;
     margin-top: 20px;
   }

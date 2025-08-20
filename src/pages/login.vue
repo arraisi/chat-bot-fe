@@ -13,12 +13,36 @@
         <div>
           <p class="welcome-subtitle">Silahkan pilih otoritas untuk mengakses aplikasi</p>
 
+          <!-- User role-based authority filtering feedback -->
+          <v-alert
+            v-if="userRoles.length > 0"
+            :type="authorityFilterMessage.type"
+            variant="tonal"
+            density="compact"
+            class="mb-4 text-start"
+          >
+            <div class="d-flex align-center">
+              <!-- <v-icon
+                :icon="
+                  authorityFilterMessage.type === 'success'
+                    ? 'mdi-check-circle'
+                    : authorityFilterMessage.type === 'warning'
+                      ? 'mdi-alert'
+                      : 'mdi-information'
+                "
+                class="me-2"
+                size="small"
+              /> -->
+              <span class="text-body-2">{{ authorityFilterMessage.text }}</span>
+            </div>
+          </v-alert>
+
           <v-select
             v-model="selectedAuthority"
             :items="authorities"
             item-title="name"
             item-value="code"
-            label="Pilih Otoritas"
+            :label="`Pilih Otoritas (${authorities.length} tersedia)`"
             variant="outlined"
             density="comfortable"
             class="authority-dropdown"
@@ -97,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { useAuth } from '../composables/useAuth';
   import ssoService from '../services/ssoService';
@@ -113,7 +137,7 @@
   const { setAuthorityAndAuthenticate } = useAuth();
 
   const selectedAuthority = ref<Authority | null>(null);
-  const loading = ref(false);
+  const loading = ref(true); // Start with loading active
   const userRoles = ref<string[]>([]);
   const showSSOModal = ref(false);
   const redirecting = ref(false);
@@ -148,35 +172,141 @@
 
   // Filter authorities based on user roles
   const authorities = computed(() => {
+    // If no roles detected, show all authorities (fallback for development/testing)
     if (userRoles.value.length === 0) {
-      // If no roles detected, show all authorities (fallback)
+      console.log('⚠️ No user roles detected, showing all authorities as fallback');
       return allAuthorities;
     }
 
-    const hasAllRole = userRoles.value.some(role => role.toUpperCase() === 'ALL');
-    const hasAdminRole = userRoles.value.some(role => role.toUpperCase() === 'ADMIN');
-    const hasHukumRole = userRoles.value.some(role => role.toUpperCase() === 'HUKUM');
-    const hasSdmRole = userRoles.value.some(role => role.toUpperCase() === 'SDM');
+    // Normalize user roles to uppercase for consistent comparison
+    const normalizedRoles = userRoles.value.map(role => role.toUpperCase());
+    console.log('🔍 Normalized user roles:', normalizedRoles);
 
-    // If user has ALL or ADMIN role, show all authorities
-    if (hasAllRole || hasAdminRole) {
-      return allAuthorities;
+    // Check for ALL role (ALL role shows SDM and HUKUM only)
+    const hasAllRole = normalizedRoles.includes('ALL');
+
+    if (hasAllRole) {
+      console.log('✅ User has ALL role, showing SDM and HUKUM authorities');
+      return allAuthorities.filter(auth => ['SDM', 'HUKUM'].includes(auth.code));
     }
 
-    // Filter based on specific roles - don't include "ALL" option
-    const filteredAuthorities: AuthorityOption[] = [];
+    // Filter authorities based on specific user roles
+    // ADMIN role is special - it's only for upload functionality, not for authority selection
+    const availableAuthorities: AuthorityOption[] = [];
 
-    if (hasHukumRole) {
-      filteredAuthorities.push(allAuthorities.find(auth => auth.code === 'HUKUM')!);
+    // Map user roles to corresponding authorities (excluding ADMIN from authority selection)
+    const roleToAuthorityMap = {
+      HUKUM: 'HUKUM',
+      SDM: 'SDM',
+    };
+
+    // Add authorities that match user roles (excluding ADMIN)
+    const nonAdminRoles = normalizedRoles.filter(role => role !== 'ADMIN');
+
+    nonAdminRoles.forEach(role => {
+      const matchingAuthorityCode = roleToAuthorityMap[role as keyof typeof roleToAuthorityMap];
+      if (matchingAuthorityCode) {
+        const authority = allAuthorities.find(auth => auth.code === matchingAuthorityCode);
+        if (authority && !availableAuthorities.find(auth => auth.code === authority.code)) {
+          availableAuthorities.push(authority);
+        }
+      }
+    });
+
+    // If user only has ADMIN role, show ADMIN authority
+    if (normalizedRoles.length === 1 && normalizedRoles[0] === 'ADMIN') {
+      console.log('👤 User has only ADMIN role, showing ADMIN authority');
+      const adminAuthority = allAuthorities.find(auth => auth.code === 'ADMIN');
+      if (adminAuthority) {
+        return [adminAuthority];
+      }
     }
 
-    if (hasSdmRole) {
-      filteredAuthorities.push(allAuthorities.find(auth => auth.code === 'SDM')!);
-    }
+    console.log(
+      '📋 Filtered authorities based on user roles:',
+      availableAuthorities.map(auth => auth.code)
+    );
 
-    // Return only the specific role authorities (no "ALL" option for specific roles)
-    return filteredAuthorities.length > 0 ? filteredAuthorities : allAuthorities;
+    // Return filtered authorities, or fallback to all authorities if no matches found
+    return availableAuthorities.length > 0 ? availableAuthorities : allAuthorities;
   });
+
+  // Computed property for user feedback about available authorities
+  const authorityFilterMessage = computed(() => {
+    if (userRoles.value.length === 0) {
+      return {
+        type: 'info' as const,
+        text: 'Menunggu informasi peran pengguna dari SSO...',
+      };
+    }
+
+    const normalizedRoles = userRoles.value.map(role => role.toUpperCase());
+    const hasAllRole = normalizedRoles.includes('ALL');
+    const hasAdminRole = normalizedRoles.includes('ADMIN');
+
+    if (hasAllRole) {
+      return {
+        type: 'success' as const,
+        text: 'Anda memiliki akses ke otoritas SDM dan HUKUM.',
+      };
+    }
+
+    // If user only has ADMIN role
+    if (normalizedRoles.length === 1 && normalizedRoles[0] === 'ADMIN') {
+      return {
+        type: 'info' as const,
+        text: 'Anda memiliki akses administrator untuk upload file.',
+      };
+    }
+
+    const nonAdminRoles = normalizedRoles.filter(role => role !== 'ADMIN' && ['HUKUM', 'SDM'].includes(role));
+
+    if (nonAdminRoles.length > 0) {
+      let message = `Otoritas yang tersedia: ${nonAdminRoles.join(', ')}`;
+      if (hasAdminRole) {
+        message += '. Akses upload file tersedia.';
+      }
+      return {
+        type: 'info' as const,
+        text: message,
+      };
+    }
+
+    return {
+      type: 'warning' as const,
+      text: 'Tidak ada otoritas khusus yang cocok dengan peran Anda. Menampilkan semua otoritas.',
+    };
+  });
+
+  // Auto-select authority if only one is available, or prioritize non-ADMIN when ADMIN is present with others
+  watch(
+    authorities,
+    newAuthorities => {
+      if (newAuthorities.length === 1 && !selectedAuthority.value) {
+        selectedAuthority.value = newAuthorities[0].code;
+        console.log('🎯 Auto-selected single available authority:', newAuthorities[0].code);
+      } else if (newAuthorities.length > 1 && !selectedAuthority.value) {
+        // If user has ADMIN role with other roles, prioritize non-ADMIN authorities
+        const normalizedRoles = userRoles.value.map(role => role.toUpperCase());
+        const hasAdminRole = normalizedRoles.includes('ADMIN');
+
+        if (hasAdminRole) {
+          // Prioritize HUKUM over SDM if both are available
+          const hukumAuthority = newAuthorities.find(auth => auth.code === 'HUKUM');
+          const sdmAuthority = newAuthorities.find(auth => auth.code === 'SDM');
+
+          if (hukumAuthority) {
+            selectedAuthority.value = 'HUKUM';
+            console.log('🎯 Auto-selected HUKUM authority (prioritized over ADMIN)');
+          } else if (sdmAuthority) {
+            selectedAuthority.value = 'SDM';
+            console.log('🎯 Auto-selected SDM authority (prioritized over ADMIN)');
+          }
+        }
+      }
+    },
+    { immediate: true }
+  );
 
   // Get user roles from SSO token on component mount
   onMounted(() => {
@@ -228,24 +358,34 @@
                 console.log('🔍 User roles updated from SSO:', userRoles.value);
               }
 
+              // Stop loading after token is processed
+              loading.value = false;
+              console.log('✅ SSO token processed, stopping loading state');
+
               // If user has authority, auto-select it and proceed
               if (userAuthority && authorities.value.some(auth => auth.code === userAuthority)) {
                 selectedAuthority.value = userAuthority as Authority;
                 console.log('🎯 Auto-selected authority:', userAuthority);
 
                 // Automatically proceed to chat if authority is valid
-                setTimeout(() => {
-                  handleContinue();
-                }, 500);
+                // setTimeout(() => {
+                //   handleContinue();
+                // }, 500);
               }
             } else {
               console.warn('⚠️ Failed to extract user authority or profile from token');
+              // Stop loading even if token processing fails
+              loading.value = false;
             }
           } else {
             console.error('❌ Failed to decode token payload');
+            // Stop loading if token decoding fails
+            loading.value = false;
           }
         } catch (error) {
           console.error('❌ Error processing SSO token from postMessage:', error);
+          // Stop loading if there's an error
+          loading.value = false;
         }
       }
     };
@@ -262,8 +402,13 @@
         '📋 Available authorities:',
         authorities.value.map(auth => auth.code)
       );
+
+      // Stop loading if user profile already exists
+      loading.value = false;
+      console.log('✅ Existing user profile found, stopping loading state');
     } else {
       console.log('⚠️ No user profile or roles found - user needs SSO authentication');
+      // Keep loading active until SSO authentication is complete
     }
 
     // Cleanup listener on unmount
@@ -323,18 +468,20 @@
     }
 
     loading.value = true;
+    console.log('🚀 Starting authentication and navigation process');
 
     try {
       // Set authority and authenticate user via SSO simulation
       await setAuthorityAndAuthenticate(selectedAuthority.value);
 
+      console.log('✅ Authentication successful, navigating to chat');
       // Navigate to chat bot page
       router.push('/');
     } catch (error) {
       console.error('Authority selection error:', error);
-    } finally {
-      loading.value = false;
+      loading.value = false; // Stop loading on error
     }
+    // Note: loading will be stopped when the component unmounts due to navigation
   };
 </script>
 
@@ -375,6 +522,20 @@
     font-size: 1.1rem;
     margin-bottom: 2rem;
     line-height: 1.6;
+  }
+
+  /* Authority filter alert styling */
+  .authority-selection :deep(.v-alert) {
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .authority-selection :deep(.v-alert.v-alert--density-compact) {
+    padding: 8px 12px;
+  }
+
+  .authority-selection :deep(.v-alert--variant-tonal) {
+    border: 1px solid rgba(var(--v-theme-surface-variant), 0.3);
   }
 
   .authority-dropdown {

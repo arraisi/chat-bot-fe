@@ -9,7 +9,7 @@
 
     <!-- Company Logo -->
     <div class="sidebar-logo">
-      <v-list-item class="pa-4">
+      <v-list-item>
         <div class="text-center w-100">
           <img src="../assets/aiva_new_logo_putih.png" alt="AIVA Logo" class="company-logo" />
         </div>
@@ -33,6 +33,7 @@
 
         <!-- Additional Action Buttons -->
         <v-btn
+          v-if="hasAdminRole"
           block
           color="white"
           prepend-icon="mdi-file-upload-outline"
@@ -138,7 +139,17 @@
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue';
+  import { useAuth } from '../composables/useAuth';
   import type { ChatSession } from '../types/chat';
+
+  const { hasAuthority, hasAnyAuthority, getUserRoles } = useAuth();
+
+  // Check if user has ADMIN role for upload functionality
+  const hasAdminRole = computed(() => {
+    const roles = getUserRoles();
+    return roles.some(role => role.toUpperCase() === 'ADMIN');
+  });
 
   interface Props {
     chatSessions: ChatSession[];
