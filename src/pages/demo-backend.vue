@@ -87,7 +87,7 @@
                           {{ backendAvailable ? 'Available' : 'Unavailable' }}
                         </v-chip>
                       </td>
-                      <td>Laravel server on {{ import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000' }}</td>
+<!--                      <td>Laravel server on {{ import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000' }}</td>-->
                     </tr>
                     <tr>
                       <td>Database</td>
