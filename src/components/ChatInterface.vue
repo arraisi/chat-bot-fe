@@ -662,13 +662,10 @@
     suggestionsKey.value += 1; // This will trigger a re-render with new random suggestions
   };
 
-  // Computed style for flexible app bar
+  // Computed style for flexible app bar - simplified for proper Vuetify behavior
   const appBarStyle = computed(() => {
-    const hasDrawer = sidebarOpen.value && !isSmallScreen.value;
     return {
-      marginLeft: hasDrawer ? '279px' : '0px',
-      width: hasDrawer ? 'calc(100% - 279px)' : '100%',
-      transition: 'all 0.3s ease-in-out',
+      // Let Vuetify handle positioning automatically
     };
   });
 
@@ -874,9 +871,8 @@
   .chat-main-content {
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Use full viewport height */
-    height: calc(100vh - var(--safe-area-top)); /* Account for device notches */
-    padding-top: calc(var(--app-bar-height) + var(--safe-area-top)); /* Dynamic app bar height + safe area */
+    height: calc(100vh - 64px); /* Account for device notches */
+    /* Remove padding-top since v-main should handle the app bar spacing automatically */
   }
 
   .chat-messages-container {
