@@ -121,12 +121,13 @@ router.beforeEach((to, from, next) => {
 
   if (authData.isAuthenticated && authData.authority && authData.token) {
     // Check if token is expired
-    if (import.meta.env.PROD && ssoService.isTokenExpired(authData.token)) {
-      console.log('Token expired, clearing auth data');
-      ssoService.clearAuthData();
-      next('/login');
-      return;
-    }
+    //TODO
+    // if (import.meta.env.PROD && ssoService.isTokenExpired(authData.token)) {
+    //   console.log('Token expired, clearing auth data');
+    //   ssoService.clearAuthData();
+    //   next('/login');
+    //   return;
+    // }
 
     // Configure axios with stored token
     ssoService.configureAxiosToken(authData.token);
