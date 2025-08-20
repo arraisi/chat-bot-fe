@@ -11,7 +11,7 @@
           <v-card-text>
             <v-alert v-if="!backendAvailable" type="warning" variant="tonal" class="mb-4">
               Backend API is not available. Make sure Laravel server is running on
-              {{ import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000' }}
+<!--              {{ import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000' }}-->
             </v-alert>
 
             <v-alert v-if="backendAvailable" type="success" variant="tonal" class="mb-4">
