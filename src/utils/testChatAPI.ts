@@ -2,11 +2,12 @@ import axios from 'axios';
 
 // Test the chat API endpoint directly
 export const testChatAPI = async () => {
-  console.log('Testing Chat API: http://localhost:8000/api/chat');
+  const apiBaseUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api`;
+  console.log(`Testing Chat API: ${apiBaseUrl}/chat`);
 
   try {
     const response = await axios.post(
-      'http://localhost:8000/api/chat',
+      `${apiBaseUrl}/chat`,
       {
         prompt: 'visi misi tata nilai dan motto?',
         otoritas: 'SDM',
@@ -35,11 +36,12 @@ export const testChatAPI = async () => {
 
 // Test with different parameters
 export const testChatAPIWithParams = async (prompt: string, otoritas: string, kategori: string) => {
+  const apiBaseUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api`;
   console.log(`Testing Chat API with prompt: "${prompt}", otoritas: "${otoritas}", kategori: "${kategori}"`);
 
   try {
     const response = await axios.post(
-      'http://localhost:8000/api/chat',
+      `${apiBaseUrl}/chat`,
       {
         prompt,
         otoritas,

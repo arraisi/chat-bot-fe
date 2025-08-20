@@ -2,14 +2,12 @@ import axios from 'axios';
 import type { Authority, UploadedFile, UploadFileResponse } from '../types/chat';
 
 // Create axios instance for upload API
-// Use VITE_API_BASE_URL or fallback to '/api' for production and 'http://localhost:8000/api' for development
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-
+// Use VITE_API_BASE_URL + '/api' for consistent API endpoint configuration
 const uploadApi = axios.create({
-  baseURL: apiBaseUrl,
+  baseURL: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api`,
   timeout: 30_000,
   headers: {
-    Accept: 'application/json',
+    'Content-Type': 'application/json',
   },
 });
 
@@ -156,7 +154,7 @@ export const getUploadedFiles = async (params: DataTablesParams = {}): Promise<D
       queryParams.append('order[0][dir]', order.dir);
     }
 
-    const response = await uploadApi.get<DataTablesResponse>(`/api/uploaded-files?${queryParams.toString()}`);
+    const response = await uploadApi.get<DataTablesResponse>(`/uploaded-files?${queryParams.toString()}`);
 
     // Transform the data to match frontend expectations
     const transformedData = response.data.data.map(file => ({
@@ -206,7 +204,7 @@ export const getUploadedFilesSimple = async (authority?: Authority | null): Prom
  */
 export const deleteUploadedFile = async (fileId: string | number): Promise<void> => {
   try {
-    await uploadApi.delete(`/api/uploaded-files/${fileId}`);
+    await uploadApi.delete(`/uploaded-files/${fileId}`);
     console.log(`Deleted file with ID: ${fileId}`);
   } catch (error) {
     console.error('Error deleting file:', error);
@@ -225,7 +223,7 @@ export const deleteUploadedFile = async (fileId: string | number): Promise<void>
  */
 export const downloadUploadedFile = async (fileId: string | number, fileName: string): Promise<void> => {
   try {
-    const response = await uploadApi.get(`/api/uploaded-files/${fileId}/download`, {
+    const response = await uploadApi.get(`/uploaded-files/${fileId}/download`, {
       responseType: 'blob',
     });
 

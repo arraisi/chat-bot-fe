@@ -4,7 +4,7 @@ export const CHAT_CONFIG = {
   USE_BACKEND: true,
 
   // API base URL
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
+  API_BASE_URL: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api`,
 
   // Offline mode settings
   ENABLE_OFFLINE_MODE: true,

@@ -256,8 +256,8 @@ export const useChatLegacy = () => {
       let errorMessage = 'An error occurred while processing your message.';
 
       if (error_ instanceof TypeError && error_.message.includes('fetch')) {
-        errorMessage =
-          'Unable to connect to the chat service. Please check if the backend server is running on http://localhost:8000';
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        errorMessage = `Unable to connect to the chat service. Please check if the backend server is running on ${apiBaseUrl}`;
       } else if (error_ instanceof Error) {
         errorMessage = error_.message;
       }

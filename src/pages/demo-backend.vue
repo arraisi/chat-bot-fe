@@ -10,7 +10,8 @@
 
           <v-card-text>
             <v-alert v-if="!backendAvailable" type="warning" variant="tonal" class="mb-4">
-              Backend API is not available. Make sure Laravel server is running on http://localhost:8000
+              Backend API is not available. Make sure Laravel server is running on
+              {{ import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000' }}
             </v-alert>
 
             <v-alert v-if="backendAvailable" type="success" variant="tonal" class="mb-4">
@@ -86,7 +87,7 @@
                           {{ backendAvailable ? 'Available' : 'Unavailable' }}
                         </v-chip>
                       </td>
-                      <td>Laravel server on localhost:8000</td>
+                      <td>Laravel server on {{ import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000' }}</td>
                     </tr>
                     <tr>
                       <td>Database</td>
@@ -150,7 +151,8 @@
 
   const testBackendConnection = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/chat/status');
+      const apiBaseUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api`;
+      const response = await fetch(`${apiBaseUrl}/chat/status`);
       if (response.ok) {
         backendAvailable.value = true;
         databaseConnected.value = true;
