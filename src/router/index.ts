@@ -95,12 +95,13 @@ const handleSSOToken = (route: any) => {
 
 // Default route guard with SSO support
 router.beforeEach((to, from, next) => {
+  console.log()
   // Check for SSO token in query parameters first
   const tokenProcessed = handleSSOToken(to);
 
   if (tokenProcessed) {
     // Token was processed, redirect to clean URL
-    next('/');
+    next('/login');
     return;
   }
 

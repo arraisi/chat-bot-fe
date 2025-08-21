@@ -3,7 +3,7 @@
     <v-form @submit.prevent="handleSubmit">
       <div class="input-wrapper">
         <!-- Category Selection Dropdown -->
-        <div class="category-selector">
+        <!-- <div class="category-selector">
           <v-select
             v-model="selectedCategory"
             :items="availableCategories"
@@ -36,7 +36,7 @@
           </v-select>
         </div>
 
-        <v-divider vertical class="category-divider" />
+        <v-divider vertical class="category-divider" /> -->
 
         <v-textarea
           v-model="inputMessage"
@@ -77,14 +77,13 @@
     </v-form>
 
     <!-- Footer with disclaimer and branding -->
-    <div class="chat-footer">
+    <!-- <div class="chat-footer">
       <div class="disclaimer-text">
         Informasi yang diberikan oleh AIVA dihasilkan oleh AI dan belum tentu akurat. Silakan lakukan pengecekan ulang
         dengan sumber terkait.
       </div>
-      <div class="powered-by">Powered by <strong>NUTANIX</strong></div>
-    </div>
-
+    </div> -->
+    <div class="powered-by">Powered by <strong>PERURI</strong></div>
     <div v-if="error" class="text-error text-caption mt-2">
       {{ error }}
     </div>
@@ -412,11 +411,11 @@
   );
 
   const placeholderText = computed(() => {
-    if (!selectedCategory.value) {
-      return 'Please select the category';
-    }
-    const categoryLabel = availableCategories.value.find(cat => cat.value === selectedCategory.value)?.label || 'Aiva';
-    return `Ask about ${categoryLabel}...`;
+    // if (!selectedCategory.value) {
+    //   return 'Please select the category';
+    // }
+    // const categoryLabel = availableCategories.value.find(cat => cat.value === selectedCategory.value)?.label || 'Aiva';
+    return `Ask anything ...`;
   });
 
   const canSend = computed(() => {
