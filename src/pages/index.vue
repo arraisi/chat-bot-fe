@@ -11,7 +11,7 @@
     </div>
     <div v-else class="loading-container">
       <v-progress-circular indeterminate color="primary" size="64" />
-      <p class="loading-text">Redirecting to login...</p>
+      <p class="loading-text">Redirecting to portal...</p>
     </div>
   </div>
 </template>
@@ -34,7 +34,7 @@
         if (!authenticated || !authority) {
           // Use nextTick to avoid immediate redirect issues
           nextTick(() => {
-            router.push('/login');
+            window.location.href = 'https://portal.peruri.co.id';
           });
         }
       }

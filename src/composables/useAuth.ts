@@ -27,7 +27,7 @@ export const useAuth = () => {
 
       console.log('Checking auth:', authData);
       //TODO: Remove log once the production is online
-      console.log('version 1.5')
+      console.log('version 1.5');
 
       if (authData.isAuthenticated && authData.authority && authData.token) {
         // TODO: Check if token is expired (clear only if in production)
@@ -187,18 +187,17 @@ export const useAuth = () => {
 
     console.log('🚪 SSO: Logout completed - all auth data cleared');
 
-    router.push('/login');
+    // Redirect to external portal instead of local login page
+    window.location.href = 'https://portal.peruri.co.id';
   };
 
-  // Require authentication - redirect to login if not authenticated
+  // Require authentication - redirect to portal if not authenticated
   const requireAuth = (): boolean => {
     const currentRoute = router.currentRoute.value.path;
 
     if (!checkAuth()) {
-      // Only redirect if not already on login or register page
-      if (currentRoute !== '/login' && currentRoute !== '/register') {
-        router.push('/login');
-      }
+      // Redirect to external portal for authentication
+      window.location.href = 'https://portal.peruri.co.id';
       return false;
     }
     return true;

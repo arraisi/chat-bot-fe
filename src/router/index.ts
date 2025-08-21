@@ -95,7 +95,6 @@ const handleSSOToken = (route: any) => {
 
 // Default route guard with SSO support
 router.beforeEach((to, from, next) => {
-  console.log()
   // Check for SSO token in query parameters first
   const tokenProcessed = handleSSOToken(to);
 
@@ -126,7 +125,7 @@ router.beforeEach((to, from, next) => {
     // if (import.meta.env.PROD && ssoService.isTokenExpired(authData.token)) {
     //   console.log('Token expired, clearing auth data');
     //   ssoService.clearAuthData();
-    //   next('/login');
+    //   window.location.href = 'https://portal.peruri.co.id';
     //   return;
     // }
 
@@ -134,8 +133,9 @@ router.beforeEach((to, from, next) => {
     ssoService.configureAxiosToken(authData.token);
     next();
   } else {
-    // User is not authenticated or doesn't have authority, redirect to login
-    next('/login');
+    // User is not authenticated or doesn't have authority, redirect to portal
+    window.location.href = 'https://portal.peruri.co.id';
+    return;
   }
 });
 

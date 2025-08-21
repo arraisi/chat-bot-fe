@@ -14,7 +14,7 @@
           <p class="welcome-subtitle">Silahkan pilih otoritas untuk mengakses aplikasi</p>
 
           <!-- User role-based authority filtering feedback -->
-          <v-alert
+          <!-- <v-alert
             v-if="userRoles.length > 0"
             :type="authorityFilterMessage.type"
             variant="tonal"
@@ -22,20 +22,9 @@
             class="mb-4 text-start"
           >
             <div class="d-flex align-center">
-              <!-- <v-icon
-                :icon="
-                  authorityFilterMessage.type === 'success'
-                    ? 'mdi-check-circle'
-                    : authorityFilterMessage.type === 'warning'
-                      ? 'mdi-alert'
-                      : 'mdi-information'
-                "
-                class="me-2"
-                size="small"
-              /> -->
               <span class="text-body-2">{{ authorityFilterMessage.text }}</span>
             </div>
-          </v-alert>
+          </v-alert> -->
 
           <v-select
             v-model="selectedAuthority"
@@ -453,9 +442,9 @@
     const hasValidToken = authData.isAuthenticated && authData.token;
     const hasAuthority = authData.authority;
 
-    console.log(`has valid token: ${hasValidToken}`)
-    console.log(`has authority: ${hasAuthority}`)
-    console.log(`is development: ${isDevelopment}`)
+    console.log(`has valid token: ${hasValidToken}`);
+    console.log(`has authority: ${hasAuthority}`);
+    console.log(`is development: ${isDevelopment}`);
 
     // If no valid authentication and in development, show SSO modal
     if ((!hasValidToken || !hasAuthority) && isDevelopment.value) {

@@ -1,5 +1,5 @@
 <template>
-  <v-card class="message-bubble" :class="messageClass" variant="text">
+  <v-card class="message-bubble" :class="messageClass" style="margin-top:60px" variant="text">
     <v-card-text class="py-2 px-3">
       <div class="d-flex align-center">
         <v-avatar class="me-2" size="24">

@@ -144,13 +144,11 @@
                     />
                     <!-- <v-icon size="80" color="primary" class="mb-4 mt-8">mdi-robot-excited</v-icon> -->
                     <!-- <h2 class="mb-2 text-h4">Welcome to AIVA</h2> -->
-                    <p class="text-body-1 text-medium-emphasis mb-4">
-                      What can I help with?
-                    </p>
+                    <p class="text-body-1 text-medium-emphasis mb-4">What can I help with?</p>
 
                     <!-- Suggestion Questions (Auto-selected first category) -->
                     <!-- TODO -->
-                    
+
 
                     <!-- Category Selection (Fallback - only shown when no category is selected) -->
                     <!-- TODO -->
@@ -995,7 +993,7 @@
   .messages-list {
     padding-bottom: 20px;
     padding-top: 20px;
-    margin-top: 50px;
+    margin-top: 60px;
     flex: 1; /* Take available space */
     display: flex;
     flex-direction: column;
@@ -1042,7 +1040,7 @@
     .messages-list {
       padding-top: 12px;
       padding-bottom: 12px;
-      margin-top: 50px;
+      margin-top: 60px;
       overflow-y: visible; /* Ensure messages are not cut on mobile */
     }
   }
@@ -1073,7 +1071,7 @@
     .messages-list {
       padding-top: 16px;
       padding-bottom: 16px;
-      margin-top: 50px;
+      margin-top: 60px;
       overflow-y: visible;
     }
   }
