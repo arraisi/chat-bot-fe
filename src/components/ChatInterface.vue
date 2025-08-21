@@ -164,6 +164,9 @@
 
                 <!-- Messages List -->
                 <!-- TODO -->
+                <div v-else classs="messages-list">
+                  <ChatMessage v-for="message in messages" :key="message.id" :message="message" class="mb-4" />
+                </div>
 
 
                 <!-- Auto-scroll anchor -->

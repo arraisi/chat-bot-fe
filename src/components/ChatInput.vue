@@ -82,7 +82,6 @@
         Informasi yang diberikan oleh AIVA dihasilkan oleh AI dan belum tentu akurat. Silakan lakukan pengecekan ulang
         dengan sumber terkait.
       </div>
-      <div class="powered-by">Powered by <strong>NUTANIX</strong></div>
     </div>
 
     <div v-if="error" class="text-error text-caption mt-2">
