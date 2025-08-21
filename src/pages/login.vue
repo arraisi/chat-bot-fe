@@ -171,28 +171,26 @@
     const normalizedRoles = userRoles.value.map(role => role.toUpperCase());
     console.log('🔍 Normalized user roles:', normalizedRoles);
 
-    // Check for ALL role (ALL role shows SDM and HUKUM only)
+    // Check for ALL or ADMIN role - both show all options
     const hasAllRole = normalizedRoles.includes('ALL');
+    const hasAdminRole = normalizedRoles.includes('ADMIN');
 
-    if (hasAllRole) {
-      console.log('✅ User has ALL role, showing SDM and HUKUM authorities');
-      return allAuthorities.filter(auth => ['SDM', 'HUKUM'].includes(auth.code));
+    if (hasAllRole || hasAdminRole) {
+      console.log('✅ User has ALL or ADMIN role, showing all authorities');
+      return allAuthorities; // Show ALL, SDM, HUKUM, ADMIN options
     }
 
     // Filter authorities based on specific user roles
-    // ADMIN role is special - it's only for upload functionality, not for authority selection
     const availableAuthorities: AuthorityOption[] = [];
 
-    // Map user roles to corresponding authorities (excluding ADMIN from authority selection)
+    // Map user roles to corresponding authorities
     const roleToAuthorityMap = {
       HUKUM: 'HUKUM',
       SDM: 'SDM',
     };
 
-    // Add authorities that match user roles (excluding ADMIN)
-    const nonAdminRoles = normalizedRoles.filter(role => role !== 'ADMIN');
-
-    nonAdminRoles.forEach(role => {
+    // Add authorities that match user roles
+    normalizedRoles.forEach(role => {
       const matchingAuthorityCode = roleToAuthorityMap[role as keyof typeof roleToAuthorityMap];
       if (matchingAuthorityCode) {
         const authority = allAuthorities.find(auth => auth.code === matchingAuthorityCode);
@@ -201,15 +199,6 @@
         }
       }
     });
-
-    // If user only has ADMIN role, show ADMIN authority
-    if (normalizedRoles.length === 1 && normalizedRoles[0] === 'ADMIN') {
-      console.log('👤 User has only ADMIN role, showing ADMIN authority');
-      const adminAuthority = allAuthorities.find(auth => auth.code === 'ADMIN');
-      if (adminAuthority) {
-        return [adminAuthority];
-      }
-    }
 
     console.log(
       '📋 Filtered authorities based on user roles:',
@@ -233,31 +222,31 @@
     const hasAllRole = normalizedRoles.includes('ALL');
     const hasAdminRole = normalizedRoles.includes('ADMIN');
 
-    if (hasAllRole) {
+    if (hasAllRole || hasAdminRole) {
       return {
         type: 'success' as const,
-        text: 'Anda memiliki akses ke otoritas SDM dan HUKUM.',
+        text: 'Anda memiliki akses ke semua otoritas (ALL, HUKUM, SDM, ADMIN).',
       };
     }
 
-    // If user only has ADMIN role
-    if (normalizedRoles.length === 1 && normalizedRoles[0] === 'ADMIN') {
+    // Check for specific roles
+    const hasHukumRole = normalizedRoles.includes('HUKUM');
+    const hasSDMRole = normalizedRoles.includes('SDM');
+
+    if (hasHukumRole && hasSDMRole) {
       return {
         type: 'info' as const,
-        text: 'Anda memiliki akses administrator untuk upload file.',
+        text: 'Anda memiliki akses ke otoritas HUKUM dan SDM.',
       };
-    }
-
-    const nonAdminRoles = normalizedRoles.filter(role => role !== 'ADMIN' && ['HUKUM', 'SDM'].includes(role));
-
-    if (nonAdminRoles.length > 0) {
-      let message = `Otoritas yang tersedia: ${nonAdminRoles.join(', ')}`;
-      if (hasAdminRole) {
-        message += '. Akses upload file tersedia.';
-      }
+    } else if (hasHukumRole) {
       return {
         type: 'info' as const,
-        text: message,
+        text: 'Anda memiliki akses ke otoritas HUKUM.',
+      };
+    } else if (hasSDMRole) {
+      return {
+        type: 'info' as const,
+        text: 'Anda memiliki akses ke otoritas SDM.',
       };
     }
 
