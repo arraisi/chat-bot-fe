@@ -27,7 +27,7 @@ export const useAuth = () => {
 
       console.log('Checking auth:', authData);
       //TODO: Remove log once the production is online
-      console.log('version 1.3')
+      console.log('version 1.4')
 
       if (authData.isAuthenticated && authData.authority && authData.token) {
         // TODO: Check if token is expired (clear only if in production)
