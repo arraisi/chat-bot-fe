@@ -453,9 +453,9 @@
     const hasValidToken = authData.isAuthenticated && authData.token;
     const hasAuthority = authData.authority;
 
-    console.log(hasValidToken)
-    console.log(hasAuthority)
-    console.log(isDevelopment)
+    console.log(`has valid token: ${hasValidToken}`)
+    console.log(`has authority: ${hasAuthority}`)
+    console.log(`is development: ${isDevelopment}`)
 
     // If no valid authentication and in development, show SSO modal
     if ((!hasValidToken || !hasAuthority) && isDevelopment.value) {
