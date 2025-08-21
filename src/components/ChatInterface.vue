@@ -145,88 +145,15 @@
                     <!-- <v-icon size="80" color="primary" class="mb-4 mt-8">mdi-robot-excited</v-icon> -->
                     <!-- <h2 class="mb-2 text-h4">Welcome to AIVA</h2> -->
                     <p class="text-body-1 text-medium-emphasis mb-4">
-                      Aiva, Asisten Virtual AI. Pilih kategori dan mulai percakapan!
+                      What can I help with?
                     </p>
 
                     <!-- Suggestion Questions (Auto-selected first category) -->
-                    <div v-if="selectedSuggestionCategory" class="suggestions-section">
-                      <div class="d-flex align-center justify-center mb-4">
-                        <v-btn icon size="small" variant="text" @click="selectedSuggestionCategory = null">
-                          <v-icon>mdi-arrow-left</v-icon>
-                        </v-btn>
-                        <h3 class="text-h6 mx-3">{{ selectedSuggestionCategory.label }}</h3>
-                        <v-spacer />
-                        <v-menu>
-                          <template #activator="{ props }">
-                            <v-btn variant="outlined" size="small" v-bind="props">
-                              <v-icon start>mdi-swap-horizontal</v-icon>
-                              Ganti Kategori
-                            </v-btn>
-                          </template>
-                          <v-list>
-                            <v-list-item
-                              v-for="category in filteredCategories"
-                              :key="category.value"
-                              @click="selectSuggestionCategory(category)"
-                            >
-                              <template #prepend>
-                                <v-icon>{{ category.icon }}</v-icon>
-                              </template>
-                              <v-list-item-title>{{ category.label }}</v-list-item-title>
-                              <v-list-item-subtitle>{{ category.description }}</v-list-item-subtitle>
-                            </v-list-item>
-                          </v-list>
-                        </v-menu>
-                      </div>
-
-                      <div class="suggestions-grid" :key="suggestionsKey">
-                        <v-card
-                          v-for="(suggestion, index) in getRandomSuggestions(selectedSuggestionCategory.suggestions)"
-                          :key="index"
-                          class="suggestion-card"
-                          hover
-                          @click="handleSuggestionClick(suggestion, selectedSuggestionCategory.value)"
-                        >
-                          <v-card-text class="pa-4">
-                            <div class="suggestion-text">{{ suggestion }}</div>
-                            <v-icon class="suggestion-icon" size="20">mdi-arrow-right</v-icon>
-                          </v-card-text>
-                        </v-card>
-                      </div>
-
-                      <!-- Show More Button (only if there are more than 4 suggestions) -->
-                      <div
-                        v-if="
-                          selectedSuggestionCategory.suggestions && selectedSuggestionCategory.suggestions.length > 4
-                        "
-                        class="text-center mt-4"
-                      >
-                        <v-btn variant="text" color="primary" size="small" @click="refreshSuggestions">
-                          <v-icon start>mdi-refresh</v-icon>
-                          Tampilkan Pertanyaan Lain
-                        </v-btn>
-                      </div>
-                    </div>
+                    <!-- TODO -->
+                    
 
                     <!-- Category Selection (Fallback - only shown when no category is selected) -->
-                    <div v-else class="category-selection mb-6">
-                      <h3 class="text-h6 mb-4">Pilih Kategori untuk Melihat Pertanyaan Populer:</h3>
-                      <div class="category-grid">
-                        <v-card
-                          v-for="category in filteredCategories"
-                          :key="category.value"
-                          class="category-card"
-                          hover
-                          @click="selectSuggestionCategory(category)"
-                        >
-                          <v-card-text class="text-center pa-4">
-                            <v-icon :icon="category.icon" size="40" color="primary" class="mb-2" />
-                            <div class="category-title">{{ category.label }}</div>
-                            <div class="category-desc">{{ category.description }}</div>
-                          </v-card-text>
-                        </v-card>
-                      </div>
-                    </div>
+                    <!-- TODO -->
 
                     <!-- <v-btn v-if="!selectedSuggestionCategory" color="primary" variant="tonal" @click="createNewSession">
                       <v-icon start>mdi-plus</v-icon>
@@ -236,9 +163,8 @@
                 </div>
 
                 <!-- Messages List -->
-                <div v-else class="messages-list">
-                  <ChatMessage v-for="message in messages" :key="message.id" :message="message" class="mb-4" />
-                </div>
+                <!-- TODO -->
+
 
                 <!-- Auto-scroll anchor -->
                 <div ref="messagesEnd" />
