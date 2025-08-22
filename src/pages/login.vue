@@ -61,6 +61,7 @@
             size="large"
             block
             :loading="loading"
+            :disabled="loading"
           >
             Lanjutkan ke aplikasi
           </v-btn>
@@ -446,6 +447,7 @@
     if (!hasValidToken || !hasAuthority) {
       console.error('❌ No valid authentication found in production environment');
       // You could show a toast/snackbar here instead of modal
+      window.location.href = 'https://portal.peruri.co.id';
       return;
     }
 
