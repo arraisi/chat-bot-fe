@@ -134,7 +134,7 @@
 
   // Check if we're in development environment
   const isDevelopment = computed(() => {
-    return import.meta.env.DEV || import.meta.env.VITE_DEV_MODE === 'true';
+    return import.meta.env.VITE_DEV_MODE === 'true';
   });
 
   const allAuthorities: AuthorityOption[] = [
